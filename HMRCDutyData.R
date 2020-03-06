@@ -392,10 +392,34 @@ tiff("Outputs/HMRCDutyRateRealLong.tiff", units="in", width=8, height=6, res=300
 ggplot(dutyrates_long, aes(x=Month, y=RealRate, colour=Type))+
   geom_line()+
   theme_classic()+
-  scale_y_continuous(name="Average duty rate payable per unit", labels=c("0", "10p", "20p", "30p", "40p"))+
+  scale_y_continuous(name="Average duty rate payable per unit", labels=c("0", "20p", "40p", "60p", "80p"))+
   scale_x_date(name="", date_breaks="36 month", labels=c("", seq(from=1949, to=2018, by=3), "", ""))+
   scale_colour_manual(values=c("#ffc000", "#00b050", "#00b0f0","#7030a0"), name="")+
   theme(axis.text.x=element_text(angle=45, vjust=1, hjust=1))+
   labs(title="Changes in UK alcohol duty rates over time", subtitle="After adjusting for inflation",
+       caption="Data from HMRC| Plot by @VictimOfMaths")
+dev.off()
+
+#Mid-term graph
+tiff("Outputs/HMRCDutyRateCash30yr.tiff", units="in", width=8, height=6, res=300)
+ggplot(dutyrates_long, aes(x=Month, y=CashRate, colour=Type))+
+  geom_line()+
+  theme_classic()+
+  scale_y_continuous(name="Average duty rate payable per unit", labels=c("0", "10p", "20p", "30p"))+
+  scale_x_date(name="", limits=c(as.Date("1991-03-01"), as.Date("2020-01-01")))+
+  scale_colour_manual(values=c("#ffc000", "#00b050", "#00b0f0","#7030a0"), name="")+
+  labs(title="Changes in UK alcohol duty rates over time", subtitle="Without adjusting for inflation",
+       caption="Data from HMRC| Plot by @VictimOfMaths")
+dev.off()
+
+tiff("Outputs/HMRCDutyRateReal30yr.tiff", units="in", width=8, height=6, res=300)
+ggplot(dutyrates_long, aes(x=Month, y=RealRate, colour=Type))+
+  geom_line()+
+  theme_classic()+
+  scale_y_continuous(name="Average duty rate payable per unit", limits=c(0,0.45), 
+                     breaks=c(0,0.1,0.2,0.3,0.4), labels=c("0", "10p", "20p", "30p", "40p"))+
+  scale_x_date(name="", limits=c(as.Date("1991-03-01"), as.Date("2020-01-01")))+
+  scale_colour_manual(values=c("#ffc000", "#00b050", "#00b0f0","#7030a0"), name="")+
+  labs(title="Changes in UK alcohol duty rates over time", subtitle="Without adjusting for inflation",
        caption="Data from HMRC| Plot by @VictimOfMaths")
 dev.off()
