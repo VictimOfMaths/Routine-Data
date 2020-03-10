@@ -26,17 +26,15 @@ beerdata <- read_excel(temp, sheet="T4", range="B60:R308",
 
 #Read in RPI data
 temp2 <- tempfile()
-source <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=04&fromYear=1999&toMonth=12&toYear=2019&frequency=months"
+source <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/chaw/mm23"
 temp2 <- curl_download(url=source, destfile=temp2, quiet=FALSE, mode="wb")
 
-RPIdata <- fread(temp2)[-c(1:5),]
+RPIdata <- fread(temp2)[-c(1:172),]
 colnames(RPIdata) <- c("Month", "RPI")
 RPIdata$Month <- as.Date(paste0(RPIdata$Month, " 1"), "%Y %b %d")
-RPIdata$RPI <- (as.numeric(RPIdata$RPI)+100)/100
+RPIdata$RPI <- as.numeric(RPIdata$RPI)
 
-#Calculate compound inflation index
-RPIdata$Index <- cumprod(RPIdata$RPI)
-RPIdata$Inflator <- RPIdata$Index[length(RPIdata$Index)]/RPIdata$Index
+RPIdata$Inflator <- RPIdata$RPI[length(RPIdata$RPI)]/RPIdata$RPI
 
 #Separate out beer and cider and tidy up data
 #including rolling averages of past 12 months and inflation adjustments
