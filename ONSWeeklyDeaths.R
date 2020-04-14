@@ -163,3 +163,107 @@ ggplot()+
   geom_text(data=ann_text, aes(x=weekno, y=deaths), label=c("2020", "Max", "Min"), size=3, 
             colour=c("Red", "deepskyblue4", "deepskyblue4"))
 dev.off()  
+
+#Move on to regional variation
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/referencetablesweek142020.xlsx"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2020 <- read_excel(temp, sheet="Weekly figures 2020", range="B83:P92", col_names=FALSE)
+colnames(data2020) <- c("reg", format(seq.Date(from=as.Date("2020-01-03"), by="7 days", length.out=ncol(data2020)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2019/publishedweek522019.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2019 <- read_excel(temp, sheet="Weekly figures 2019", range="B43:BB52", col_names=FALSE)
+colnames(data2019) <- c("reg", format(seq.Date(from=as.Date("2019-01-04"), by="7 days", length.out=ncol(data2019)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2018/publishedweek522018withupdatedrespiratoryrow.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2018 <- read_excel(temp, sheet="Weekly figures 2018", range="B43:BB52", col_names=FALSE)
+colnames(data2018) <- c("reg", format(seq.Date(from=as.Date("2018-01-05"), by="7 days", length.out=ncol(data2018)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2017/publishedweek522017.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2017 <- read_excel(temp, sheet="Weekly figures 2017", range="B43:BB52", col_names=FALSE)
+colnames(data2017) <- c("reg", format(seq.Date(from=as.Date("2017-01-06"), by="7 days", length.out=ncol(data2017)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2016/publishedweek522016.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2016 <- read_excel(temp, sheet="Weekly figures 2016", range="B43:BB52", col_names=FALSE)
+colnames(data2016) <- c("reg", format(seq.Date(from=as.Date("2016-01-08"), by="7 days", length.out=ncol(data2016)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2015/publishedweek2015.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2015 <- read_excel(temp, sheet="Weekly Figures 2015", range="A43:BB52", col_names=FALSE)
+colnames(data2015) <- c("reg", format(seq.Date(from=as.Date("2015-01-02"), by="7 days", length.out=ncol(data2015)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2014/publishedweek2014.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2014 <- read_excel(temp, sheet="Weekly Figures 2014", range="A43:BA52", col_names=FALSE)
+colnames(data2014) <- c("reg", format(seq.Date(from=as.Date("2014-01-03"), by="7 days", length.out=ncol(data2014)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2013/publishedweek2013.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2013 <- read_excel(temp, sheet="Weekly Figures 2013", range="A43:BA52", col_names=FALSE)
+colnames(data2013) <- c("reg", format(seq.Date(from=as.Date("2013-01-04"), by="7 days", length.out=ncol(data2013)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2012/publishedweek2012.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2012 <- read_excel(temp, sheet="Weekly Figures 2012", range="A43:BA52", col_names=FALSE)
+colnames(data2012) <- c("reg", format(seq.Date(from=as.Date("2012-01-06"), by="7 days", length.out=ncol(data2012)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2011/publishedweek2011.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2011 <- read_excel(temp, sheet="Weekly Figures 2011", range="A44:BA53", col_names=FALSE)
+colnames(data2011) <- c("reg", format(seq.Date(from=as.Date("2011-01-07"), by="7 days", length.out=ncol(data2011)-1)), "%d/%m/%y")
+
+temp <- tempfile()
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2010/publishedweek2010.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2010 <- read_excel(temp, sheet="Weekly Figures 2010", range="A43:BA52", col_names=FALSE)
+colnames(data2010) <- c("reg", format(seq.Date(from=as.Date("2010-01-08"), by="7 days", length.out=ncol(data2010)-1)), "%d/%m/%y")
+
+data_wide_r <- bind_cols(data2010, data2011, data2012, data2013, data2014, data2015, data2016, data2017, data2018, data2019, data2020)
+data_r <- gather(data_wide_r, week, deaths, c(2:ncol(data_wide_r)))
+data_r <- subset(data_r, substr(data_r$week,1,3)!="reg")
+data_r$deaths <- as.numeric(data_r$deaths)
+data_r$week <- as.Date(data_r$week)
+
+data_r$year <- as.numeric(format(data_r$week, "%Y"))
+data_r$weekno <- week(data_r$week)
+
+#Extract max/min values
+#split off 2020 data
+data_rnew <- subset(data_r, year==2020)
+data_rold <- subset(data_r, year<2020)
+
+data_rold <- data_rold %>%
+  group_by(weekno, reg) %>%
+  summarise(max=max(deaths), min=min(deaths))
+
+ann_text2 <- data.frame(weekno=c(17.2, 32, 32), deaths=c(1720, 1200,700), lab=c("2020", "Max", "Min"), 
+                       reg=rep("East", times=3))
+
+tiff("Outputs/ONSWeeklyDeaths_reg.tiff", units="in", width=12, height=8, res=300)
+ggplot()+
+  geom_ribbon(data=data_rold, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
+  geom_line(data=data_rnew, aes(x=weekno, y=deaths), colour="Red")+
+  theme_classic()+
+  facet_wrap(~reg)+
+  scale_x_continuous(name="Week number")+
+  scale_y_continuous(name="Deaths registered")+
+  theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
+  labs(title="Deaths from all causes have risen sharply across England & Wales",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19",
+       caption="Data from ONS | Plot by @VictimOfMaths")+
+  geom_text(data=ann_text2, aes(x=weekno, y=deaths), label=c("2020", "Max", "Min"), size=3, 
+            colour=c("Red", "deepskyblue4", "deepskyblue4"))
+dev.off()  
