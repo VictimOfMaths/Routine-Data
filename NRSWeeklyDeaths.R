@@ -74,6 +74,6 @@ ggplot()+
        subtitle="Weekly deaths in 2020 compared to the range in 2004-19",
        caption="Data from NRS | Plot by @VictimOfMaths")+
   annotate(geom="text", x=15.5, y=1740, label="2020", colour="Red")+
-  annotate(geom="text", x=30, y=1110, label="Historic Minimum", colour="deepskyblue4")+
-  annotate(geom="text", x=30, y=830, label="Historic Maximum", colour="deepskyblue4")
+  annotate(geom="text", x=30, y=1110, label="Historic Maximum", colour="deepskyblue4")+
+  annotate(geom="text", x=30, y=830, label="Historic Minimum", colour="deepskyblue4")
 dev.off()  
