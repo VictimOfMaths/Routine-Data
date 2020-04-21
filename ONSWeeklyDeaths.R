@@ -8,9 +8,9 @@ library(lubridate)
 
 #Import individual years of data, with inevitable fuckery because ONS keep subtly changing the spreadsheets
 temp <- tempfile()
-source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/referencetablesweek142020.xlsx"
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/publishedweek152020.xlsx"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
-data2020 <- read_excel(temp, sheet="Weekly figures 2020", range="B18:P37", col_names=FALSE)
+data2020 <- read_excel(temp, sheet="Weekly figures 2020", range="B22:Q41", col_names=FALSE)
 colnames(data2020) <- c("Age", format(seq.Date(from=as.Date("2020-01-03"), by="7 days", length.out=ncol(data2020)-1)), "%d/%m/%y")
 
 #match 2020 agebands to other years
@@ -26,7 +26,7 @@ data2020$age <- case_when(
 
 data2020 <- data2020 %>%
   group_by(age) %>%
-  summarise_at(c(2:15), sum)
+  summarise_at(c(2:(ncol(data2020)-1)), sum)
 
 data2020$age <- factor(data2020$age, levels=c("Under 1 year", "01-14", "15-44", "45-64", "65-74", "75-84", "85+"))
 data2020 <- arrange(data2020, age)
@@ -146,7 +146,7 @@ dataold <- dataold %>%
   group_by(weekno, age2) %>%
   summarise(max=max(deaths), min=min(deaths))
 
-ann_text <- data.frame(weekno=c(16.5, 32, 32), deaths=c(6500, 3900,2700), lab=c("2020", "Max", "Min"), age2=factor(c("85+", "85+", "85+"), levels=c("<45", "45-64", "65-74", "75-84", "85+")))
+ann_text <- data.frame(weekno=c(17.5, 32, 32), deaths=c(7462, 3900,2700), lab=c("2020", "Max", "Min"), age2=factor(c("85+", "85+", "85+"), levels=c("<45", "45-64", "65-74", "75-84", "85+")))
 
 tiff("Outputs/ONSWeeklyDeaths.tiff", units="in", width=12, height=8, res=300)
 ggplot()+
@@ -166,9 +166,9 @@ dev.off()
 
 #Move on to regional variation
 temp <- tempfile()
-source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/referencetablesweek142020.xlsx"
+source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/publishedweek152020.xlsx"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
-data2020 <- read_excel(temp, sheet="Weekly figures 2020", range="B83:P92", col_names=FALSE)
+data2020 <- read_excel(temp, sheet="Weekly figures 2020", range="B87:Q96", col_names=FALSE)
 colnames(data2020) <- c("reg", format(seq.Date(from=as.Date("2020-01-03"), by="7 days", length.out=ncol(data2020)-1)), "%d/%m/%y")
 
 temp <- tempfile()
@@ -249,7 +249,7 @@ data_rold <- data_rold %>%
   group_by(weekno, reg) %>%
   summarise(max=max(deaths), min=min(deaths))
 
-ann_text2 <- data.frame(weekno=c(17.2, 32, 32), deaths=c(1720, 1200,700), lab=c("2020", "Max", "Min"), 
+ann_text2 <- data.frame(weekno=c(18.2, 32, 32), deaths=c(2000, 1200,700), lab=c("2020", "Max", "Min"), 
                        reg=rep("East", times=3))
 
 tiff("Outputs/ONSWeeklyDeaths_reg.tiff", units="in", width=12, height=8, res=300)
@@ -325,7 +325,7 @@ data_new$year <- as.numeric(data_new$year)
 data_rold <- bind_rows(data_rold, data_old)
 data_rnew <- bind_rows(data_rnew, data_new)
 
-ann_text3 <- data.frame(weekno=c(17.2, 32, 32), deaths=c(1720, 1200,700), lab=c("2020", "Max", "Min"), 
+ann_text3 <- data.frame(weekno=c(18.2, 32, 32), deaths=c(2000, 1200,700), lab=c("2020", "Max", "Min"), 
                         reg=rep("East", times=3))
 
 tiff("Outputs/ONSNRSWeeklyDeaths_reg.tiff", units="in", width=12, height=8, res=300)
@@ -343,4 +343,3 @@ ggplot()+
   geom_text(data=ann_text3, aes(x=weekno, y=deaths), label=c("2020", "Max", "Min"), size=3, 
             colour=c("Red", "deepskyblue4", "deepskyblue4"))
 dev.off()  
-
