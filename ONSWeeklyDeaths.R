@@ -146,10 +146,17 @@ dataold <- dataold %>%
   group_by(weekno, age2) %>%
   summarise(max=max(deaths), min=min(deaths))
 
-ann_text <- data.frame(weekno=c(17.5, 32, 32), deaths=c(7462, 3900,2700), lab=c("2020", "Max", "Min"), age2=factor(c("85+", "85+", "85+"), levels=c("<45", "45-64", "65-74", "75-84", "85+")))
+#Generate filled area for total excess deaths vs. previous 10-year maximum
+datanew <- merge(datanew, dataold, by=c("weekno", "age2"))
+datanew <- datanew %>%
+  mutate(ymax=pmax(deaths, max))
+
+ann_text <- data.frame(weekno=c(16, 32, 32), deaths=c(6000, 3900,2700), 
+                       age2=factor(rep("85+", times=3), levels=c("<45", "45-64", "65-74", "75-84", "85+")))
 
 tiff("Outputs/ONSWeeklyDeaths.tiff", units="in", width=12, height=8, res=300)
 ggplot()+
+  geom_ribbon(data=datanew, aes(x=weekno, ymin=max, ymax=ymax), fill="Red", alpha=0.2)+
   geom_ribbon(data=dataold, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
   geom_line(data=datanew, aes(x=weekno, y=deaths), colour="Red")+
   theme_classic()+
@@ -157,11 +164,11 @@ ggplot()+
   scale_x_continuous(name="Week number")+
   scale_y_continuous(name="Deaths registered")+
   theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
-  labs(title="Deaths from all causes have risen sharply in all age groups over 45",
-       subtitle="Weekly deaths in 2020 compared to the range in 2010-19",
+  labs(title="Deaths from all causes have risen sharply in England & Wales across all age groups over 45",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19. Data up to 10th April",
        caption="Data from ONS | Plot by @VictimOfMaths")+
-  geom_text(data=ann_text, aes(x=weekno, y=deaths), label=c("2020", "Max", "Min"), size=3, 
-            colour=c("Red", "deepskyblue4", "deepskyblue4"))
+  geom_text(data=ann_text, aes(x=weekno, y=deaths), label=c("Unprecedented excess deaths\nin 2020", "Max", "Min"), size=3, 
+            colour=c("Red", "deepskyblue4", "deepskyblue4"), hjust=0)
 dev.off()  
 
 #Move on to regional variation
@@ -249,11 +256,17 @@ data_rold <- data_rold %>%
   group_by(weekno, reg) %>%
   summarise(max=max(deaths), min=min(deaths))
 
-ann_text2 <- data.frame(weekno=c(18.2, 32, 32), deaths=c(2000, 1200,700), lab=c("2020", "Max", "Min"), 
+#Generate filled area for total excess deaths vs. previous 10-year maximum
+data_rnew <- merge(data_rnew, data_rold, by=c("weekno", "reg"))
+data_rnew <- data_rnew %>%
+  mutate(ymax=pmax(deaths, max))
+
+ann_text2 <- data.frame(weekno=c(16, 32, 32), deaths=c(1700,1200,700), 
                        reg=rep("East", times=3))
 
 tiff("Outputs/ONSWeeklyDeaths_reg.tiff", units="in", width=12, height=8, res=300)
 ggplot()+
+  geom_ribbon(data=data_rnew, aes(x=weekno, ymin=max, ymax=ymax), fill="Red", alpha=0.2)+
   geom_ribbon(data=data_rold, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
   geom_line(data=data_rnew, aes(x=weekno, y=deaths), colour="Red")+
   theme_classic()+
@@ -262,10 +275,10 @@ ggplot()+
   scale_y_continuous(name="Deaths registered")+
   theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
   labs(title="Deaths from all causes have risen sharply across England & Wales",
-       subtitle="Weekly deaths in 2020 compared to the range in 2010-19",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19. Data up to 10th April",
        caption="Data from ONS | Plot by @VictimOfMaths")+
-  geom_text(data=ann_text2, aes(x=weekno, y=deaths), label=c("2020", "Max", "Min"), size=3, 
-            colour=c("Red", "deepskyblue4", "deepskyblue4"))
+  geom_text(data=ann_text2, aes(x=weekno, y=deaths), label=c("Unprecedented excess deaths\nin 2020","Max", "Min"), size=3, 
+            colour=c("Red", "deepskyblue4", "deepskyblue4"), hjust=0)
 dev.off()  
 
 #################################
@@ -309,6 +322,9 @@ colnames(data1620) <- c("weekno", "date", "deaths", "year")
 
 data <- bind_rows(data1015, data1620)
 
+#Recalculate dates to align with ONS data (which uses week to, not w/c)
+data$date <- data$date+days(7)
+
 #Extract max/min values
 #split off 2020 data
 data_new <- subset(data, year=="2020")
@@ -322,6 +338,11 @@ data_old$reg <- "Scotland"
 data_new$reg <- "Scotland"
 data_new$year <- as.numeric(data_new$year)
 
+#Generate filled area for total excess deaths vs. previous 10-year maximum
+data_new <- merge(data_new, data_old, by=c("weekno", "reg"))
+data_new <- data_new %>%
+  mutate(ymax=pmax(deaths, max))
+
 data_rold <- bind_rows(data_rold, data_old)
 data_rnew <- bind_rows(data_rnew, data_new)
 
@@ -330,6 +351,7 @@ ann_text3 <- data.frame(weekno=c(18.2, 32, 32), deaths=c(2000, 1200,700), lab=c(
 
 tiff("Outputs/ONSNRSWeeklyDeaths_reg.tiff", units="in", width=12, height=8, res=300)
 ggplot()+
+  geom_ribbon(data=data_rnew, aes(x=weekno, ymin=max, ymax=ymax), fill="Red", alpha=0.2)+
   geom_ribbon(data=data_rold, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
   geom_line(data=data_rnew, aes(x=weekno, y=deaths), colour="Red")+
   theme_classic()+
@@ -338,8 +360,105 @@ ggplot()+
   scale_y_continuous(name="Deaths registered")+
   theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
   labs(title="Deaths from all causes have risen sharply across Great Britain",
-       subtitle="Weekly deaths in 2020 compared to the range in 2010-19",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland & Wales data to April 10th\nScotland data to April 6th",
        caption="Data from ONS & NRS | Plot by @VictimOfMaths")+
   geom_text(data=ann_text3, aes(x=weekno, y=deaths), label=c("2020", "Max", "Min"), size=3, 
             colour=c("Red", "deepskyblue4", "deepskyblue4"))
+dev.off()  
+
+#Bring in NI data
+temp <- tempfile()
+source <- "https://www.nisra.gov.uk/sites/nisra.gov.uk/files/publications/Weekly_Deaths.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2020 <- read_excel(temp, sheet="Weekly Deaths_2020", range="B5:C18", col_names=FALSE)
+colnames(data2020) <- c("date", "deaths")
+
+temp <- tempfile()
+source <- "https://www.nisra.gov.uk/sites/nisra.gov.uk/files/publications/Weekly_Deaths%20-%20Historical.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2019 <- read_excel(temp, sheet="Weekly Deaths_2019", range="C5:D56", col_names=FALSE)
+colnames(data2019) <- c("date", "deaths")
+
+data2018 <- read_excel(temp, sheet="Weekly Deaths_2018", range="C5:D56", col_names=FALSE)
+colnames(data2018) <- c("date", "deaths")
+
+data2017 <- read_excel(temp, sheet="Weekly Deaths_2017", range="C5:D57", col_names=FALSE)
+colnames(data2017) <- c("date", "deaths")
+
+data2016 <- read_excel(temp, sheet="Weekly Deaths_2016", range="C5:D56", col_names=FALSE)
+colnames(data2016) <- c("date", "deaths")
+
+data2015 <- read_excel(temp, sheet="Weekly Deaths_2015", range="C5:D57", col_names=FALSE)
+colnames(data2015) <- c("date", "deaths")
+
+data2014 <- read_excel(temp, sheet="Weekly Deaths_2014", range="C5:D56", col_names=FALSE)
+colnames(data2014) <- c("date", "deaths")
+
+data2013 <- read_excel(temp, sheet="Weekly Deaths_2013", range="C5:D56", col_names=FALSE)
+colnames(data2013) <- c("date", "deaths")
+
+data2012 <- read_excel(temp, sheet="Weekly Deaths_2012", range="C5:D56", col_names=FALSE)
+colnames(data2012) <- c("date", "deaths")
+
+data2011 <- read_excel(temp, sheet="Weekly Deaths_2011", range="C5:D56", col_names=FALSE)
+colnames(data2011) <- c("date", "deaths")
+
+data2010 <- read_excel(temp, sheet="Weekly Deaths_2010", range="C5:D57", col_names=FALSE)
+colnames(data2010) <- c("date", "deaths")
+
+data2010$year <- "2010"
+data2011$year <- "2011"
+data2012$year <- "2012"
+data2013$year <- "2013"
+data2014$year <- "2014"
+data2015$year <- "2015"
+data2016$year <- "2016"
+data2017$year <- "2017"
+data2018$year <- "2018"
+data2019$year <- "2019"
+data2020$year <- "2020"
+
+datani <- bind_rows(data2010, data2011, data2012, data2013, data2014, data2015, data2016, data2017, data2018, data2019, data2020)
+datani$week <- as.Date(datani$date)
+
+datani$weekno <- week(datani$week)
+
+#Extract max/min values
+#split off 2020 data
+data_new <- subset(datani, year=="2020")
+data_old <- subset(datani, year!="2020")
+
+data_old <- data_old %>%
+  group_by(weekno) %>%
+  summarise(max=max(deaths), min=min(deaths))
+
+data_old$reg <- "Northern Ireland"
+data_new$reg <- "Northern Ireland"
+data_new$year <- as.numeric(data_new$year)
+
+#Generate filled area for total excess deaths vs. previous 10-year maximum
+data_new <- merge(data_new, data_old, by=c("weekno", "reg"))
+data_new <- data_new %>%
+  mutate(ymax=pmax(deaths, max))
+
+data_rold <- bind_rows(data_rold, data_old)
+data_rnew <- bind_rows(data_rnew, data_new)
+
+ann_text4 <- data.frame(weekno=c(16.5, 28, 28), deaths=c(1700, 1200,700), reg=rep("East", times=3))
+
+tiff("Outputs/ONSNRSNISRAWeeklyDeaths_reg.tiff", units="in", width=12, height=8, res=300)
+ggplot()+
+  geom_ribbon(data=data_rnew, aes(x=weekno, ymin=max, ymax=ymax), fill="Red", alpha=0.2)+
+  geom_ribbon(data=data_rold, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
+  geom_line(data=data_rnew, aes(x=weekno, y=deaths), colour="Red")+
+  theme_classic()+
+  facet_wrap(~reg)+
+  scale_x_continuous(name="Week number")+
+  scale_y_continuous(name="Deaths registered")+
+  theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
+  labs(title="Deaths from all causes have risen sharply across the UK",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland, Wales & Northern Ireland data to April 10th\nScotland data to April 6th",
+       caption="Data from ONS, NRS & NISRA | Plot by @VictimOfMaths")+
+  geom_text(data=ann_text4, aes(x=weekno, y=deaths), label=c("Unprecedented excess deaths\nin 2020","Max", "Min"), size=3, 
+            colour=c("Red", "deepskyblue4", "deepskyblue4"), hjust=0)
 dev.off()  
