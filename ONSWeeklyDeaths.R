@@ -368,7 +368,7 @@ ggplot()+
   scale_y_continuous(name="Deaths registered")+
   theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
   labs(title="Deaths from all causes have risen sharply across Great Britain",
-       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland & Wales data to April 10th\nScotland data to April 6th",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland & Wales data to April 10th\nScotland data to April 12th",
        caption="Data from ONS & NRS | Plot by @VictimOfMaths")+
   geom_text(data=ann_text3, aes(x=weekno, y=deaths), label=c("2020", "Max", "Min"), size=3, 
             colour=c("Red", "deepskyblue4", "deepskyblue4"))
@@ -456,7 +456,7 @@ ggplot()+
   scale_y_continuous(name="Deaths registered")+
   theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
   labs(title="Deaths from all causes have risen sharply across the UK",
-       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland, Wales & Northern Ireland data to April 10th\nScotland data to April 6th",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland, Wales & Northern Ireland data to April 10th\nScotland data to April 12th",
        caption="Data from ONS, NRS & NISRA | Plot by @VictimOfMaths")+
   geom_text(data=ann_text4, aes(x=weekno, y=deaths), label=c("Unprecedented excess deaths\nin 2020","Max", "Min"), size=3, 
             colour=c("Red", "deepskyblue4", "deepskyblue4"), hjust=0)
