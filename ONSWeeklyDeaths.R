@@ -328,7 +328,7 @@ data1619$date <- as.Date(data1619$date)
 data <- bind_rows(data1015, data1619, data20)
 
 #Recalculate dates to align with ONS data (which uses week to, not w/c)
-data$date <- data$date+days(7)
+data$date <- data$date+days(6)
 
 data$year <- as.character(year(data$date))
 data$weekno <- week(data$date)
@@ -439,6 +439,8 @@ data_new$year <- as.numeric(data_new$year)
 data_new <- merge(data_new, data_old, by=c("weekno", "reg"))
 data_new <- data_new %>%
   mutate(ymax=pmax(deaths, max))
+
+data_new$date <- as.Date(data_new$date)
 
 data_rold <- bind_rows(data_rold, data_old)
 data_rnew <- bind_rows(data_rnew, data_new)
