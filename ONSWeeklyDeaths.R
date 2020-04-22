@@ -6,12 +6,16 @@ library(curl)
 library(readxl)
 library(lubridate)
 
+#To do
+#Finish exploring BH variation
+#Look at gender variation for EW & Scotland
+
 #Import individual years of data, with inevitable fuckery because ONS keep subtly changing the spreadsheets
 temp <- tempfile()
 source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fbirthsdeathsandmarriages%2fdeaths%2fdatasets%2fweeklyprovisionalfiguresondeathsregisteredinenglandandwales%2f2020/publishedweek152020.xlsx"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
 data2020 <- read_excel(temp, sheet="Weekly figures 2020", range="B22:Q41", col_names=FALSE)
-colnames(data2020) <- c("Age", format(seq.Date(from=as.Date("2020-01-03"), by="7 days", length.out=ncol(data2020)-1)), "%d/%m/%y")
+colnames(data2020) <- c("Age", format(seq.Date(from=as.Date("2020-01-03"), by="7 days", length.out=ncol(data2020)-1), "%d/%m/%y"))
 
 #match 2020 agebands to other years
 data2020$age <- case_when(
@@ -298,32 +302,36 @@ data16 <- read_excel(temp, sheet="2016", range="E6:G57", col_names=FALSE)
 data17 <- read_excel(temp, sheet="2017", range="E6:G57", col_names=FALSE)
 data18 <- read_excel(temp, sheet="2018", range="E6:G57", col_names=FALSE)
 data19 <- read_excel(temp, sheet="2019", range="E6:G57", col_names=FALSE)
-data20 <- read_excel(temp, sheet="2020", range="E6:G19", col_names=FALSE)
+#data20 <- read_excel(temp, sheet="2020", range="E6:G19", col_names=FALSE)
 
-data10$year <- "2010"
-data11$year <- "2011"
-data12$year <- "2012"
-data13$year <- "2013"
-data14$year <- "2014"
-data15$year <- "2015"
-data16$year <- "2016"
-data17$year <- "2017"
-data18$year <- "2018"
-data19$year <- "2019"
-data20$year <- "2020"
+#Take 2020 data from dedicated COVID-19 page, which is updated more regularly
+temp <- tempfile()
+source <- "https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-15.xlsx"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data20 <- data.frame(t(read_excel(temp, sheet="Table 2 - All deaths", range="C6:Q7", col_names=FALSE))[,c(2)])
+date <- data.frame(date=format(seq.Date(from=as.Date("2019-12-30"), by="7 days", length.out=nrow(data20)), "%d/%m/%y"))
+data20 <- cbind(date, data20)
+colnames(data20) <- c("date", "deaths")
+data20$date <- as.Date(data20$date, "%d/%m/%y")
+data20$weekno <- week(data20$date)
 
 #Stick together 2004-15 which share the same structure
 data1015 <- bind_rows(data10, data11, data12, data13, data14, data15)
-colnames(data1015) <- c("weekno", "date", "births", "deaths", "year")
+colnames(data1015) <- c("weekno", "date", "births", "deaths")
+data1015$date <- as.Date(data1015$date)
 
-#Then 2016-20 data
-data1620 <- bind_rows(data16, data17, data18, data19, data20)
-colnames(data1620) <- c("weekno", "date", "deaths", "year")
+#Then 2016-19 data
+data1619 <- bind_rows(data16, data17, data18, data19)
+colnames(data1619) <- c("weekno", "date", "deaths")
+data1619$date <- as.Date(data1619$date)
 
-data <- bind_rows(data1015, data1620)
+data <- bind_rows(data1015, data1619, data20)
 
 #Recalculate dates to align with ONS data (which uses week to, not w/c)
 data$date <- data$date+days(7)
+
+data$year <- as.character(year(data$date))
+data$weekno <- week(data$date)
 
 #Extract max/min values
 #split off 2020 data
@@ -366,7 +374,9 @@ ggplot()+
             colour=c("Red", "deepskyblue4", "deepskyblue4"))
 dev.off()  
 
-#Bring in NI data
+#########################################
+#Bring in Northern Irish data from NISRA#
+#########################################
 temp <- tempfile()
 source <- "https://www.nisra.gov.uk/sites/nisra.gov.uk/files/publications/Weekly_Deaths.xls"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
@@ -406,22 +416,11 @@ colnames(data2011) <- c("date", "deaths")
 data2010 <- read_excel(temp, sheet="Weekly Deaths_2010", range="C5:D57", col_names=FALSE)
 colnames(data2010) <- c("date", "deaths")
 
-data2010$year <- "2010"
-data2011$year <- "2011"
-data2012$year <- "2012"
-data2013$year <- "2013"
-data2014$year <- "2014"
-data2015$year <- "2015"
-data2016$year <- "2016"
-data2017$year <- "2017"
-data2018$year <- "2018"
-data2019$year <- "2019"
-data2020$year <- "2020"
-
 datani <- bind_rows(data2010, data2011, data2012, data2013, data2014, data2015, data2016, data2017, data2018, data2019, data2020)
 datani$week <- as.Date(datani$date)
 
 datani$weekno <- week(datani$week)
+datani$year <- year(datani$week)
 
 #Extract max/min values
 #split off 2020 data
@@ -462,3 +461,37 @@ ggplot()+
   geom_text(data=ann_text4, aes(x=weekno, y=deaths), label=c("Unprecedented excess deaths\nin 2020","Max", "Min"), size=3, 
             colour=c("Red", "deepskyblue4", "deepskyblue4"), hjust=0)
 dev.off()  
+
+#Tidy up data to stick it all together
+data$reg <- "Scotland"
+datani$reg <- "Northern Ireland"
+data$year <- as.numeric(data$year)
+datani$year <- as.numeric(datani$year)
+colnames(data)[colnames(data)=="date"] <- "week"
+data$week <- as.Date(data$week)
+data_r$week <- as.Date(data_r$week)
+datani$week <- as.Date(datani$week)
+
+data_all <- bind_rows(data_r, data[,-c(3)], datani[,-c(1)])
+
+#Generate cumulative death counts by year
+data_all <- data_all %>%
+  group_by(reg, year) %>%
+  mutate(cumul_deaths=cumsum(deaths))
+
+ann_text5 <- data.frame(weekno=15, cumul_deaths=25000, reg="London")
+
+tiff("Outputs/ONSNRSNISRAWeeklyCumulDeaths_reg.tiff", units="in", width=12, height=8, res=300)
+ggplot()+
+  geom_line(data=subset(data_all, year!=2020), aes(x=weekno, y=cumul_deaths, group=as.factor(year)), colour="Grey80")+
+  geom_line(data=subset(data_all, year==2020), aes(x=weekno, y=cumul_deaths), colour="Red")+
+  theme_classic()+
+  facet_wrap(~reg)+
+  facet_wrap(~reg)+
+  scale_x_continuous(name="Week number")+
+  scale_y_continuous(name="Deaths registered")+
+  theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
+  labs(title="Cumulative deaths in the UK from all causes in 2020 vs. 2010-2019",
+       caption="Data from ONS, NRS & NISRA | Plot by @VictimOfMaths")+
+  geom_text(data=ann_text5, aes(x=weekno, y=cumul_deaths), label=c("2020"), size=3, colour="Red")
+dev.off()
