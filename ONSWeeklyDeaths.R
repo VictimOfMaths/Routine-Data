@@ -306,9 +306,9 @@ data19 <- read_excel(temp, sheet="2019", range="E6:G57", col_names=FALSE)
 
 #Take 2020 data from dedicated COVID-19 page, which is updated more regularly
 temp <- tempfile()
-source <- "https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-15.xlsx"
+source <- "https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-16.xlsx"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
-data20 <- data.frame(t(read_excel(temp, sheet="Table 2 - All deaths", range="C6:Q7", col_names=FALSE))[,c(2)])
+data20 <- data.frame(t(read_excel(temp, sheet="Table 2 - All deaths", range="C6:R7", col_names=FALSE))[,c(2)])
 date <- data.frame(date=format(seq.Date(from=as.Date("2019-12-30"), by="7 days", length.out=nrow(data20)), "%d/%m/%y"))
 data20 <- cbind(date, data20)
 colnames(data20) <- c("date", "deaths")
@@ -458,7 +458,7 @@ ggplot()+
   scale_y_continuous(name="Deaths registered")+
   theme(strip.background=element_blank(), strip.text=element_text(face="bold"))+
   labs(title="Deaths from all causes have risen sharply across the UK",
-       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland, Wales & Northern Ireland data to April 10th\nScotland data to April 12th",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland, Wales & Northern Ireland data to April 10th\nScotland data to April 19th",
        caption="Data from ONS, NRS & NISRA | Plot by @VictimOfMaths")+
   geom_text(data=ann_text4, aes(x=weekno, y=deaths), label=c("Unprecedented excess deaths\nin 2020","Max", "Min"), size=3, 
             colour=c("Red", "deepskyblue4", "deepskyblue4"), hjust=0)
