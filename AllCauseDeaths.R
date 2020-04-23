@@ -549,9 +549,23 @@ data_wide.reg.EW <- bind_cols(data2010.reg.EW, data2011.reg.EW, data2012.reg.EW,
 data.reg.EW <- gather(data_wide.reg.EW, week, deaths, c(2:ncol(data_wide.reg.EW)))
 data.reg.EW <- subset(data.reg.EW, substr(data.reg.EW$week,1,3)!="reg")
 data.reg.EW$deaths <- as.numeric(data.reg.EW$deaths)
-data.reg.EW$week <- as.Date(data.reg.EW$week, "%d/%m/%y")
-data.reg.EW$year <- as.numeric(format(data.reg.EW$week, "%Y"))
-data.reg.EW$weekno <- week(data.reg.EW$week)
+data.reg.EW$date <- as.Date(data.reg.EW$week, "%d/%m/%y")
+data.reg.EW$year <- as.numeric(format(data.reg.EW$date, "%Y"))
+data.reg.EW$weekno <- week(data.reg.EW$date)
+data.reg.EW <- data.reg.EW[,-c(2)]
+
+#Tidy up
+rm(data_wide.age.EW, data_wide.reg.EW, data_wide.sex.EW, data2010.age.EW, data2010.female.EW, data2010.male.EW, data2010.reg.EW, data2010.sex.EW,
+data2011.age.EW, data2011.female.EW, data2011.male.EW, data2011.reg.EW, data2011.sex.EW,
+data2012.age.EW, data2012.female.EW, data2012.male.EW, data2012.reg.EW, data2012.sex.EW,
+data2013.age.EW, data2013.female.EW, data2013.male.EW, data2013.reg.EW, data2013.sex.EW,
+data2014.age.EW, data2014.female.EW, data2014.male.EW, data2014.reg.EW, data2014.sex.EW,
+data2015.age.EW, data2015.female.EW, data2015.male.EW, data2015.reg.EW, data2015.sex.EW,
+data2016.age.EW, data2016.female.EW, data2016.male.EW, data2016.reg.EW, data2016.sex.EW,
+data2017.age.EW, data2017.female.EW, data2017.male.EW, data2017.reg.EW, data2017.sex.EW,
+data2018.age.EW, data2018.female.EW, data2018.male.EW, data2018.reg.EW, data2018.sex.EW,
+data2019.age.EW, data2019.female.EW, data2019.male.EW, data2019.reg.EW, data2019.sex.EW,
+data2020.age.EW, data2020.female.EW, data2020.male.EW, data2020.reg.EW, data2020.sex.EW)
 
 ################
 #E&W only plots#
@@ -594,7 +608,7 @@ ggplot()+
  
 dev.off()  
 
-#Plots by sex
+#Plot by sex
 
 #Extract max/min values
 #split off 2020 data
@@ -638,6 +652,7 @@ ggplot()+
 dev.off()  
 
 #By sex and age
+
 #Extract max/min values
 #split off 2020 data
 data.sex.age.EW.new <- subset(data.sex.EW, year==2020 & !age %in% c("Total", "Under 1 year", "01-14", "15-44"))
@@ -662,7 +677,7 @@ sex.age.EW.excess <- data.sex.age.EW.new %>%
 ann_text2 <- data.frame(weekno=rep(15.5, times=8), deaths=c(920,1200,2300,4200,1300,1900,3300,3400), sex=rep(c("Female", "Male"), each=4), 
                         age=rep(c("45-64", "65-74", "75-84", "85+"), times=2))
 
-tiff("Outputs/ONSWeeklyDeathsxSexAge.tiff", units="in", width=12, height=8, res=300)
+tiff("Outputs/ONSWeeklyDeathsxSexxAge.tiff", units="in", width=12, height=8, res=300)
 ggplot()+
   geom_ribbon(data=data.sex.age.EW.old, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
   geom_line(data=data.sex.age.EW.old, aes(x=weekno, y=mean), colour="Grey50", linetype=2)+
@@ -684,4 +699,218 @@ ggplot()+
                                                              paste(round(sex.age.EW.excess[3,3],0),"excess deaths"),
                                                              paste(round(sex.age.EW.excess[4,3],0),"excess deaths")),
             size=3, colour=rep("red", times=8), hjust=0)
-dev.off() 
+dev.off()  
+
+#Plot by age
+
+#Compress age groups under 45
+data.age.EW$age2 <- case_when(
+  data.age.EW$age %in% c("Under 1 year", "01-14", "15-44") ~ "Under 45",
+  data.age.EW$age!="Total" ~ data.age.EW$age
+)
+
+data.age.EW$age2 <- factor(data.age.EW$age2, levels=c("Under 45", "45-64", "65-74", "75-84", "85+"))
+
+data.age.EW <- data.age.EW %>%
+  group_by(weekno, age2, year) %>%
+  mutate(deaths=sum(deaths))
+
+#Extract max/min values
+#split off 2020 data
+data.age.EW.new <- subset(data.age.EW, year==2020 & !is.na(age2))
+data.age.EW.old <- subset(data.age.EW, year<2020 & !is.na(age2))
+
+data.age.EW.old <- data.age.EW.old %>%
+  group_by(weekno, age2) %>%
+  summarise(max=max(deaths), min=min(deaths), mean=mean(deaths))
+
+#Generate filled area for total excess deaths vs. previous 10-year maximum
+data.age.EW.new <- merge(data.age.EW.new, data.age.EW.old, by=c("weekno", "age2"))
+data.age.EW.new <- data.age.EW.new %>%
+  group_by(age2) %>%
+  mutate(ymin=pmin(deaths, max))
+
+#Calculate excess deaths vs. mean so far this year
+data.age.EW.new$excess <- data.age.EW.new$deaths-data.age.EW.new$mean
+age.EW.excess <- data.age.EW.new %>%
+  group_by(age2) %>%
+  summarise(excess=sum(excess))
+
+ann_text3 <- data.frame(weekno=rep(16, times=5), deaths=c(1000, 1800, 2500, 4500, 6000), age2=c("Under 45", "45-64", "65-74", "75-84", "85+"))
+
+tiff("Outputs/ONSWeeklyDeathsxAge.tiff", units="in", width=12, height=8, res=300)
+ggplot()+
+  geom_ribbon(data=data.age.EW.new, aes(x=weekno, ymin=ymin, ymax=deaths), fill="Red", alpha=0.2)+
+  geom_ribbon(data=data.age.EW.old, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
+  geom_line(data=data.age.EW.old, aes(x=weekno, y=mean), colour="Grey50", linetype=2)+
+  geom_line(data=data.age.EW.new, aes(x=weekno, y=deaths), colour="Red")+
+  theme_classic()+
+  facet_wrap(~age2)+
+  scale_x_continuous(name="Week number", breaks=c(0,10,20,30,40,50))+
+  scale_y_continuous(name="Deaths registered")+
+  labs(title="All-cause deaths in England & Wales are at record levels across all age groups over 45",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19. Data up to 10th April",
+       caption="Data from ONS | Plot by @VictimOfMaths")+
+  theme(strip.background=element_blank(), strip.text=element_text(face="bold", size=rel(1)))+
+  geom_text(data=ann_text3, aes(x=weekno, y=deaths), label=c(paste(round(age.EW.excess[1,2],0),"deaths compared to\n2010-19 average"), 
+                                                             paste(round(age.EW.excess[2,2],0),"excess deaths"),
+                                                             paste(round(age.EW.excess[3,2],0),"excess deaths"),
+                                                             paste(round(age.EW.excess[4,2],0),"excess deaths"),
+                                                             paste(round(age.EW.excess[5,2],0),"excess deaths")), 
+            size=3, colour=rep("red", times=5), hjust=0)
+dev.off()  
+
+
+#######################
+#Read in Scottish data#
+#######################
+
+temp <- tempfile()
+source <- "https://www.nrscotland.gov.uk/files//statistics/weekly-monthly-births-deaths-data/2020/mar/weekly-march-20.xlsx"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2010.S <- read_excel(temp, sheet="2010", range="A6:D57", col_names=FALSE)
+data2011.S <- read_excel(temp, sheet="2011", range="A6:D58", col_names=FALSE)
+data2012.S <- read_excel(temp, sheet="2012", range="A6:D57", col_names=FALSE)
+data2013.S <- read_excel(temp, sheet="2013", range="A6:D57", col_names=FALSE)
+data2014.S <- read_excel(temp, sheet="2014", range="A6:D57", col_names=FALSE)
+data2015.S <- read_excel(temp, sheet="2015 ", range="A6:D58", col_names=FALSE)
+data2016.S <- read_excel(temp, sheet="2016", range="E6:G57", col_names=FALSE)
+data2017.S <- read_excel(temp, sheet="2017", range="E6:G57", col_names=FALSE)
+data2018.S <- read_excel(temp, sheet="2018", range="E6:G57", col_names=FALSE)
+data2019.S <- read_excel(temp, sheet="2019", range="E6:G57", col_names=FALSE)
+
+#Take 2020 data from dedicated COVID-19 page, which is updated more regularly
+temp <- tempfile()
+source <- "https://www.nrscotland.gov.uk/files//statistics/covid19/covid-deaths-data-week-16.xlsx"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2020.S <- data.frame(t(read_excel(temp, sheet="Table 2 - All deaths", range="C6:R7", col_names=FALSE))[,c(2)])
+date <- data.frame(date=format(seq.Date(from=as.Date("2019-12-30"), by="7 days", length.out=nrow(data2020.S)), "%d/%m/%y"))
+data2020.S <- cbind(date, data2020.S)
+colnames(data2020.S) <- c("date", "deaths")
+data2020.S$date <- as.Date(data2020.S$date, "%d/%m/%y")
+data2020.S$weekno <- week(data2020.S$date)
+
+#Stick together 2004-15 which share the same structure
+data1015.S <- bind_rows(data2010.S, data2011.S, data2012.S, data2013.S, data2014.S, data2015.S)
+colnames(data1015.S) <- c("weekno", "date", "births", "deaths")
+data1015.S$date <- as.Date(data1015.S$date)
+
+#Then 2016-19 data
+data1619.S <- bind_rows(data2016.S, data2017.S, data2018.S, data2019.S)
+colnames(data1619.S) <- c("weekno", "date", "deaths")
+data1619.S$date <- as.Date(data1619.S$date)
+
+data.S <- bind_rows(data1015.S, data1619.S, data2020.S)
+
+#Recalculate dates to align with ONS data (which uses week to, not w/c)
+data.S$date <- data.S$date+days(6)
+
+data.S$weekno <- week(data.S$date)
+data.S$year <- year(data.S$date)
+data.S$reg <- "Scotland"
+data.S <- data.S[,-c(3)]
+
+#Tidy up
+rm(date, data2010.S, data2011.S, data2012.S, data2013.S, data2014.S, data2015.S, data2016.S, data2017.S,
+   data2018.S, data2019.S, data2020.S, data1015.S, data1619.S)
+
+#############################
+#Read in Northern Irish data#
+#############################
+
+temp <- tempfile()
+source <- "https://www.nisra.gov.uk/sites/nisra.gov.uk/files/publications/Weekly_Deaths.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2020.NI <- read_excel(temp, sheet="Weekly Deaths_2020", range="B5:C18", col_names=FALSE)
+colnames(data2020.NI) <- c("date", "deaths")
+
+temp <- tempfile()
+source <- "https://www.nisra.gov.uk/sites/nisra.gov.uk/files/publications/Weekly_Deaths%20-%20Historical.xls"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+data2019.NI <- read_excel(temp, sheet="Weekly Deaths_2019", range="C5:D56", col_names=FALSE)
+colnames(data2019.NI) <- c("date", "deaths")
+
+data2018.NI <- read_excel(temp, sheet="Weekly Deaths_2018", range="C5:D56", col_names=FALSE)
+colnames(data2018.NI) <- c("date", "deaths")
+
+data2017.NI <- read_excel(temp, sheet="Weekly Deaths_2017", range="C5:D57", col_names=FALSE)
+colnames(data2017.NI) <- c("date", "deaths")
+
+data2016.NI <- read_excel(temp, sheet="Weekly Deaths_2016", range="C5:D56", col_names=FALSE)
+colnames(data2016.NI) <- c("date", "deaths")
+
+data2015.NI <- read_excel(temp, sheet="Weekly Deaths_2015", range="C5:D57", col_names=FALSE)
+colnames(data2015.NI) <- c("date", "deaths")
+
+data2014.NI <- read_excel(temp, sheet="Weekly Deaths_2014", range="C5:D56", col_names=FALSE)
+colnames(data2014.NI) <- c("date", "deaths")
+
+data2013.NI <- read_excel(temp, sheet="Weekly Deaths_2013", range="C5:D56", col_names=FALSE)
+colnames(data2013.NI) <- c("date", "deaths")
+
+data2012.NI <- read_excel(temp, sheet="Weekly Deaths_2012", range="C5:D56", col_names=FALSE)
+colnames(data2012.NI) <- c("date", "deaths")
+
+data2011.NI <- read_excel(temp, sheet="Weekly Deaths_2011", range="C5:D56", col_names=FALSE)
+colnames(data2011.NI) <- c("date", "deaths")
+
+data2010.NI <- read_excel(temp, sheet="Weekly Deaths_2010", range="C5:D57", col_names=FALSE)
+colnames(data2010.NI) <- c("date", "deaths")
+
+data.NI <- bind_rows(data2010.NI, data2011.NI, data2012.NI, data2013.NI, data2014.NI, data2015.NI, data2016.NI, 
+                    data2017.NI, data2018.NI, data2019.NI, data2020.NI)
+data.NI$date <- as.Date(data.NI$date)
+
+data.NI$weekno <- week(data.NI$date)
+data.NI$year <- year(data.NI$date)
+data.NI$reg <- "Northern Ireland"
+
+#Tidy up
+rm(data2010.NI, data2011.NI, data2012.NI, data2013.NI, data2014.NI, data2015.NI, data2016.NI, data2017.NI,
+   data2018.NI, data2019.NI, data2020.NI)
+
+#Stick regional data together for whole of UK
+data.reg.UK <- bind_rows(data.reg.EW, data.S, data.NI)
+
+#Plot by region
+
+#Extract max/min values
+#split off 2020 data
+data.reg.UK.new <- subset(data.reg.UK, year==2020)
+data.reg.UK.old <- subset(data.reg.UK, year<2020)
+
+data.reg.UK.old <- data.reg.UK.old %>%
+  group_by(weekno, reg) %>%
+  summarise(max=max(deaths), min=min(deaths), mean=mean(deaths))
+
+#Generate filled area for total excess deaths vs. previous 10-year maximum
+data.reg.UK.new <- merge(data.reg.UK.new, data.reg.UK.old, by=c("weekno", "reg"))
+data.reg.UK.new <- data.reg.UK.new %>%
+  group_by(reg) %>%
+  mutate(ymin=pmin(deaths, max))
+
+#Calculate excess deaths vs. mean so far this year
+data.reg.UK.new$excess <- data.reg.UK.new$deaths-data.reg.UK.new$mean
+reg.UK.excess <- data.reg.UK.new %>%
+  group_by(reg) %>%
+  summarise(excess=sum(excess))
+
+ann_text4 <- data.frame(weekno=c(16.5, 28, 28), deaths=c(1700, 1200,700), reg=rep("East", times=3))
+
+tiff("Outputs/ONSNRSNISRAWeeklyDeathsxReg.tiff", units="in", width=12, height=8, res=300)
+ggplot()+
+  geom_ribbon(data=data.reg.UK.new, aes(x=weekno, ymin=ymin, ymax=deaths), fill="Red", alpha=0.2)+
+  geom_ribbon(data=data.reg.UK.old, aes(x=weekno, ymin=min, ymax=max), fill="Skyblue2")+
+  geom_line(data=data.reg.UK.old, aes(x=weekno, y=mean), colour="Grey50", linetype=2)+
+  geom_line(data=data.reg.UK.new, aes(x=weekno, y=deaths), colour="Red")+
+  theme_classic()+
+  facet_wrap(~reg)+
+  scale_x_continuous(name="Week number", breaks=c(0,10,20,30,40,50))+
+  scale_y_continuous(name="Deaths registered")+
+  labs(title="Deaths from all causes have risen sharply, but not equally, across the UK",
+       subtitle="Weekly deaths in 2020 compared to the range in 2010-19\nEngland, Wales & Northern Ireland data to April 10th\nScotland data to April 12th",
+       caption="Data from ONS, NRS & NISRA | Plot by @VictimOfMaths")+
+  theme(strip.background=element_blank(), strip.text=element_text(face="bold", size=rel(1)))+
+  geom_text(data=ann_text4, aes(x=weekno, y=deaths), label=c("Unprecedented excess deaths\nin 2020","Max", "Min"), size=3, 
+            colour=c("Red", "deepskyblue4", "deepskyblue4"), hjust=0)
+dev.off()  
