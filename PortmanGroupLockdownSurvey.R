@@ -5,17 +5,29 @@ library(paletteer)
 
 #Data estimated from information in:
 #https://www.portmangroup.org.uk/wp-content/uploads/2020/06/YouGov-Portman-Group-survey-on-alcohol-consumption-during-the-COVID-19-lockdown-2.pdf
-data <- data.frame(less=c(21.9, 1.6,1.1,0.5,0,0.3), 
-                   same=c(27.4,3.8,2.3,1.5,1.1,0.8),
-                   more=c(15.4,7.7,4.6,2.8,2.1,1.4),
-                   drinkcat=c("Less than 14 units", "15-21 units", "22-28 units", "29-35 units",
-                              "36-49 units", "50+ units"))
 
-data_long <- gather(data, group, perc, c(1:3))
+#Proportions of people within each of the 3 categories (drink less, the same or more) were in each
+#baseline (i.e. pre-lockdown) consumption category
+data <- data.frame(drinkcat=c("Less than 14 units", "15-21 units", "22-28 units", "29-35 units",
+                              "36-49 units", "50+ units"),
+                   less=c(81,6,4,2,0,1),
+                   same=c(72,10,6,4,3,2),
+                   more=c(44,22,13,8,6,4))
+
+#27% of drinkers reported they had cut down, so:
+data$less.all <- data$less*0.27/100
+
+#38% of drinkers reported no change
+data$same.all <- data$same*0.38/100
+
+#35% of drinkers reported drinking more
+data$more.all <- data$more*0.35/100
+
+data_long <- gather(data, group, perc, c(5:7))
 
 data_long$drinkcat <- factor(data_long$drinkcat, levels=c("Less than 14 units", "15-21 units", "22-28 units", "29-35 units",
                                                           "36-49 units", "50+ units"))
-data_long$group <- factor(data_long$group, levels=c("less", "same", "more"))
+data_long$group <- factor(data_long$group, levels=c("less.all", "same.all", "more.all"))
 
 data_long <- data_long %>%
   group_by(drinkcat) %>% 
