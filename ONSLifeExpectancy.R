@@ -5,6 +5,9 @@ library(curl)
 library(readxl)
 library(forcats)
 library(paletteer)
+library(sf)
+library(rmapshaper)
+library(lubridate)
 
 temp <- tempfile()
 source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fhealthandsocialcare%2fhealthandlifeexpectancies%2fdatasets%2flifeexpectancyestimatesallagesuk%2f2001to2003to2017to2019/lepivottableupdated.xlsx"
@@ -51,12 +54,71 @@ data_long$age_cont <- case_when(
 
 data_long$deathage <- data_long$LE+data_long$age_cont
 
+tiff("Outputs/LEtrendsxageEng.tiff", units="in", width=10, height=6, res=500)
 data_long %>% 
   filter(name=="England" & metric=="central") %>% 
 ggplot()+
   geom_line(aes(x=year, y=deathage, colour=fct_rev(age)))+
   scale_x_continuous(name="Year")+
   scale_y_continuous(name="Expected age at death")+
-  scale_colour_paletteer_d(pal="ggthemes::Classic Cyclic")+
+  scale_colour_paletteer_d(pal="pals::stepped", name="Age")+
   facet_wrap(~sex)+
-  theme_classic()
+  theme_classic()+
+  theme(strip.background = element_blank(), strip.text=element_text(face="bold", size=rel(1)))+
+  labs(title="Life expectancy improvements in England have stalled across all age groups",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
+#Bring in shapefile
+temp <- tempfile()
+temp2 <- tempfile()
+source <- "https://opendata.arcgis.com/datasets/1d78d47c87df4212b79fe2323aae8e08_0.zip?outSR=%7B%22latestWkid%22%3A27700%2C%22wkid%22%3A27700%7D"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+unzip(zipfile=temp, exdir=temp2)
+
+#The actual shapefile has a different name each time you download it, so need to fish the name out of the unzipped file
+name <- list.files(temp2, pattern=".shp")
+shapefile <- st_read(file.path(temp2, name))
+
+names(shapefile)[names(shapefile) == "lad19cd"] <- "code"
+
+#Sort out Buckinghamshire to match hex template
+shapefile$code <- if_else(shapefile$code %in% c("E07000004", "E07000005", "E07000006", "E07000007"),  "E06000060", as.character(shapefile$code))
+
+simplemap <- ms_simplify(shapefile, keep=0.2, keep_shapes = TRUE)
+
+map.data <- data_long %>% 
+  filter(metric=="central" & age=="<1") %>% 
+  group_by(name, sex, code) %>% 
+  summarise(change0211=LE[year==2011]-LE[year==2002], change1811=LE[year==2018]-LE[year==2011],
+            LE=LE[year==2018]) %>% 
+  gather(period, change, c("change0211", "change1811")) %>% 
+  ungroup()
+
+map.cases <- full_join(simplemap, map.data, by="code", all.y=TRUE)
+
+ggplot(subset(map.cases, sex=="Male"))+
+  geom_sf(aes(geometry=geometry, fill=change), colour=NA)+
+  scale_fill_paletteer_c("viridis::magma", name="")+
+  facet_wrap(~period)+
+  theme_classic()+
+  theme(axis.line=element_blank(), axis.ticks=element_blank(), axis.text=element_blank(),
+        axis.title=element_blank())
+
+tiff("Outputs/LEcorr.tiff", units="in", width=8, height=6, res=500)
+data_long %>% 
+  filter(metric=="central" & age=="<1") %>% 
+  group_by(name, sex, code) %>% 
+  summarise(change0211=LE[year==2011]-LE[year==2002], change1811=LE[year==2018]-LE[year==2011]) %>%
+ggplot()+
+  geom_point(aes(x=change0211, y=change1811, colour=sex), show.legend=FALSE)+
+  scale_x_continuous(name="Change in Life Expectancy at birth 2002-2011")+
+  scale_y_continuous(name="Change in Life Expectancy at birth 2011-2018")+
+  scale_colour_manual(values=c("#00cc99", "#6600cc"))+
+  facet_wrap(~sex)+
+  theme_classic()+
+  theme(strip.background=element_blank(), strip.text=element_text(face="bold", size=rel(1)))+
+  labs(title="Improvements in Life Expectancy before 2011 don't seem to predict subsequent changes",
+       subtitle="Changes in period Life Expectancy at birth in Local Authorities across the UK",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
