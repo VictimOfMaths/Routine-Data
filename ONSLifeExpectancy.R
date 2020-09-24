@@ -52,7 +52,7 @@ data_long$age_cont <- case_when(
 data_long$deathage <- data_long$LE+data_long$age_cont
 
 data_long %>% 
-  filter(name=="England") %>% 
+  filter(name=="England" & metric=="central") %>% 
 ggplot()+
   geom_line(aes(x=year, y=deathage, colour=fct_rev(age)))+
   scale_x_continuous(name="Year")+
