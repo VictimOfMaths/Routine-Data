@@ -9,6 +9,8 @@ library(sf)
 library(rmapshaper)
 library(lubridate)
 library(ggtext)
+library(geojsonio)
+library(broom)
 
 temp <- tempfile()
 source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fhealthandsocialcare%2fhealthandlifeexpectancies%2fdatasets%2flifeexpectancyestimatesallagesuk%2f2001to2003to2017to2019/lepivottableupdated.xlsx"
@@ -98,13 +100,69 @@ map.data <- data_long %>%
 
 map.cases <- full_join(simplemap, map.data, by="code", all.y=TRUE)
 
-ggplot(subset(map.cases, sex=="Male"))+
+limit1811 <- max(abs(subset(map.cases, period=="change1811")$change))
+
+tiff("Outputs/LEchangemap.tiff", units="in", width=10, height=6, res=500)
+ggplot(subset(map.cases, period=="change1811"))+
   geom_sf(aes(geometry=geometry, fill=change), colour=NA)+
-  scale_fill_paletteer_c("viridis::magma", name="")+
-  facet_wrap(~period)+
+  scale_fill_paletteer_c("pals::kovesi.diverging_gwr_55_95_c38",
+                         limit=c(-1,1)*limit1811, 
+                         name="Change in \nLife Expectancy\nat birth (years)", direction=-1)+  
+  facet_wrap(~sex)+
   theme_classic()+
   theme(axis.line=element_blank(), axis.ticks=element_blank(), axis.text=element_blank(),
-        axis.title=element_blank())
+        axis.title=element_blank(), strip.background=element_blank(),
+        strip.text=element_text(face="bold", size=rel(1)))+
+  labs(title="Life Expectancy has changed unequally across the UK since 2011",
+       subtitle="Changes in Life Expectancy at birth between 2011-18 at Local Authority level",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
+#Hexmap version
+#Read in hex boundaries (adapted from from https://olihawkins.com/2018/02/1 and ODI Leeds)
+hex <- geojson_read("Data/UKLA.geojson", what="sp")
+
+# Fortify into a data frame format to be shown with ggplot2
+hexes <- tidy(hex, region="id")
+
+hexes$id <- if_else(hexes$id=="E09000001", "E09000012", hexes$id)
+
+#Sort out Buckinghamshire
+map.data$code <- if_else(map.data$code %in% c("E07000004", "E07000005", "E07000006", "E07000007"),  
+                         "E06000060", as.character(map.data$code))
+
+temp <- subset(map.data, code=="E06000060")
+
+temp1 <- temp
+temp1$code <- "E07000004"
+temp2 <- temp
+temp2$code <- "E07000005"
+temp3 <- temp
+temp3$code <- "E07000006"
+temp$code <- "E07000007"
+map.data <- bind_rows(map.data, temp, temp1, temp2, temp3)
+
+data.hex <- left_join(hexes, map.data, by=c("id"="code"), all.y=TRUE)
+
+#Remove Isles of Scilly which are too small to have their own data
+data.hex <- subset(data.hex, id!="E06000053")
+
+tiff("Outputs/LEchangehexmap.tiff", units="in", width=10, height=6, res=500)
+ggplot(subset(data.hex, period=="change1811"))+
+  geom_polygon(aes(x=long, y=lat, group=id, fill=change))+
+  coord_fixed()+
+  scale_fill_paletteer_c("pals::kovesi.diverging_gwr_55_95_c38",
+                       limit=c(-1,1)*limit1811, 
+                       name="Change in \nLife Expectancy\nat birth (years)", direction=-1)+  
+  facet_wrap(~sex)+
+  theme_classic()+
+  theme(axis.line=element_blank(), axis.ticks=element_blank(), axis.text=element_blank(),
+        axis.title=element_blank(), strip.background=element_blank(),
+        strip.text=element_text(face="bold", size=rel(1)))+
+  labs(title="Life Expectancy has changed unequally across the UK since 2011",
+       subtitle="Changes in Life Expectancy at birth between 2011-18 at Local Authority level",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
 
 tiff("Outputs/LEcorr.tiff", units="in", width=8, height=6, res=500)
 data_long %>% 
@@ -177,7 +235,7 @@ ggplot(subset(IMDmap, !is.na(quintile) & !is.na(period) & !is.na(sex)),
   geom_point(aes(colour=negflag), show.legend=FALSE)+
   geom_smooth(method="lm", formula=y~x, colour="Black")+
   scale_x_continuous(name="Index of Multiple Deprivation rank")+
-  scale_y_continuous(name="Change in Life Expectancy at Birth")+
+  scale_y_continuous(name="Change in Life Expectancy at Birth (years)")+
   scale_colour_manual(values=c("Grey60", "tomato"))+
   facet_grid(sex~period, labeller=labels)+
   theme_classic()+
