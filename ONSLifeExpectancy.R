@@ -8,6 +8,7 @@ library(paletteer)
 library(sf)
 library(rmapshaper)
 library(lubridate)
+library(ggtext)
 
 temp <- tempfile()
 source <- "https://www.ons.gov.uk/file?uri=%2fpeoplepopulationandcommunity%2fhealthandsocialcare%2fhealthandlifeexpectancies%2fdatasets%2flifeexpectancyestimatesallagesuk%2f2001to2003to2017to2019/lepivottableupdated.xlsx"
@@ -90,9 +91,9 @@ simplemap <- ms_simplify(shapefile, keep=0.2, keep_shapes = TRUE)
 map.data <- data_long %>% 
   filter(metric=="central" & age=="<1") %>% 
   group_by(name, sex, code) %>% 
-  summarise(change0211=LE[year==2011]-LE[year==2002], change1811=LE[year==2018]-LE[year==2011],
+  summarise(change0411=LE[year==2011]-LE[year==2004], change1811=LE[year==2018]-LE[year==2011],
             LE=LE[year==2018]) %>% 
-  gather(period, change, c("change0211", "change1811")) %>% 
+  gather(period, change, c("change0411", "change1811")) %>% 
   ungroup()
 
 map.cases <- full_join(simplemap, map.data, by="code", all.y=TRUE)
@@ -109,10 +110,10 @@ tiff("Outputs/LEcorr.tiff", units="in", width=8, height=6, res=500)
 data_long %>% 
   filter(metric=="central" & age=="<1") %>% 
   group_by(name, sex, code) %>% 
-  summarise(change0211=LE[year==2011]-LE[year==2002], change1811=LE[year==2018]-LE[year==2011]) %>%
-ggplot()+
-  geom_point(aes(x=change0211, y=change1811, colour=sex), show.legend=FALSE)+
-  scale_x_continuous(name="Change in Life Expectancy at birth 2002-2011")+
+  summarise(change0411=LE[year==2011]-LE[year==2004], change1811=LE[year==2018]-LE[year==2011]) %>%
+ggplot(aes(x=change0411, y=change1811, colour=sex))+
+  geom_point(show.legend=FALSE)+
+  scale_x_continuous(name="Change in Life Expectancy at birth 2004-2011")+
   scale_y_continuous(name="Change in Life Expectancy at birth 2011-2018")+
   scale_colour_manual(values=c("#00cc99", "#6600cc"))+
   facet_wrap(~sex)+
@@ -120,5 +121,69 @@ ggplot()+
   theme(strip.background=element_blank(), strip.text=element_text(face="bold", size=rel(1)))+
   labs(title="Improvements in Life Expectancy before 2011 don't seem to predict subsequent changes",
        subtitle="Changes in period Life Expectancy at birth in Local Authorities across the UK",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
+#Bring in IMD data for England
+temp <- tempfile()
+source <- "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/833995/File_10_-_IoD2019_Local_Authority_District_Summaries__lower-tier__.xlsx"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+IMDdata <- read_excel(temp, sheet="IMD", range="A1:D318", col_names=TRUE)
+colnames(IMDdata) <-  c("code", "name", "IMDrank", "IMDorder")
+IMDdata$quintile <- ntile(IMDdata$IMDrank, 5)
+IMDdata$tertile <- ntile(IMDdata$IMDrank, 3)
+
+#Sort out Buckinghamshire
+IMDdata$code <- if_else(IMDdata$code %in% c("E07000004", "E07000005", "E07000006", "E07000007"),  "E06000060", as.character(IMDdata$code))
+
+#Combine
+IMDmap <- full_join(map.cases, IMDdata[,c(1,4,5,6)], by="code")
+
+#calculate tertiles for changes in LE in each period
+IMDmap <- IMDmap %>% 
+  group_by(sex,period) %>% 
+  mutate(tertilechange=ntile(change,3))
+
+#Highlight areas with -ve LE growth
+IMDmap$negflag <- if_else(IMDmap$change<0, TRUE, FALSE)
+
+#Set up bivariate colour scheme
+IMDmap$col <- case_when(
+  IMDmap$tertilechange==1 & IMDmap$tertile==1 ~ "#e8e8e8",
+  IMDmap$tertilechange==1 & IMDmap$tertile==2 ~ "#b5c0da",
+  IMDmap$tertilechange==1 & IMDmap$tertile==3 ~ "#6c83b5",
+  IMDmap$tertilechange==2 & IMDmap$tertile==1 ~ "#b8d6be",
+  IMDmap$tertilechange==2 & IMDmap$tertile==2 ~ "#90b2b3",
+  IMDmap$tertilechange==2 & IMDmap$tertile==3 ~ "#567994",
+  IMDmap$tertilechange==3 & IMDmap$tertile==1 ~ "#73ae80",
+  IMDmap$tertilechange==3 & IMDmap$tertile==2 ~ "#5a9178",
+  IMDmap$tertilechange==3 & IMDmap$tertile==3 ~ "#2a5a5b"
+)
+
+#Bivariate map
+ggplot(subset(IMDmap, !is.na(quintile) & !is.na(period) & !is.na(sex)))+
+  geom_sf(aes(geometry=geometry, fill=col), colour=NA)+
+  scale_fill_identity()+
+  facet_grid(sex~period)+
+  theme_classic()+
+  theme(axis.line=element_blank(), axis.ticks=element_blank(), axis.text=element_blank(),
+        axis.title=element_blank())
+
+labels <- as_labeller(c(`change0411`="2004-11", `change1811`="2011-18", `Male`="Male", `Female`="Female"))
+
+tiff("Outputs/LEchangexIMD.tiff", units="in", width=9, height=6, res=500)
+ggplot(subset(IMDmap, !is.na(quintile) & !is.na(period) & !is.na(sex)),
+       aes(x=IMDorder, y=change))+
+  geom_point(aes(colour=negflag), show.legend=FALSE)+
+  geom_smooth(method="lm", formula=y~x, colour="Black")+
+  scale_x_continuous(name="Index of Multiple Deprivation rank")+
+  scale_y_continuous(name="Change in Life Expectancy at Birth")+
+  scale_colour_manual(values=c("Grey60", "tomato"))+
+  facet_grid(sex~period, labeller=labels)+
+  theme_classic()+
+  theme(strip.background=element_blank(), strip.text=element_text(face="bold", size=rel(1)),
+        plot.subtitle=element_markdown())+
+  labs(title="Since 2011, Life Expectancy has risen more slowly in the most deprived Local Authorities",
+       subtitle="Changes in Life Expectancy at birth in English Local Authorities in the 7 years before/after 2011.<br> Authorities ordered by the Index of Multiple Deprivation, lower ranking = more deprived.<br>Areas where Life Expectancy has fallen are highlighted in <span style='color:tomato;'>red</span>.",
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
