@@ -1,11 +1,11 @@
 rm(list=ls())
 
 library(tidyverse)
-library(rcurl)
+library(curl)
 library(paletteer)
 
 temp <- tempfile()
-source <- "https://www.opendata.nhs.scot/dataset/479848ef-41f8-44c5-bfb5-666e0df8f574/resource/df65826d-0017-455b-b312-828e47df325b/download/cancellations_scotland_july_2020.csv"
+source <- "https://www.opendata.nhs.scot/dataset/479848ef-41f8-44c5-bfb5-666e0df8f574/resource/df65826d-0017-455b-b312-828e47df325b/download/cancellations_scotland_august_2020.csv"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
 data <- read.csv(temp)[,c(1,3,5,7,9,11,13)]
 
@@ -33,7 +33,7 @@ ggplot(subset(data_long, date>as.Date("2019-05-01")))+
   geom_area(aes(x=date, y=count, fill=status))+
   scale_x_date(name="Scheduled operation date")+
   scale_y_continuous(name="Number of operations")+
-  scale_fill_paletteer_d("fishualize::Scarus_quoyi", name="")+
+  scale_fill_paletteer_d("fishualize::Scarus_quoyi",name="")+
   theme_classic()+
   labs(title="Planned operations in Scotland are still well below usual levels",
        caption="Data from Public Health Scotland | Plot by @VictimOfMaths")
