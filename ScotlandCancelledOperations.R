@@ -4,8 +4,9 @@ library(tidyverse)
 library(curl)
 library(paletteer)
 
+#Data comes from: https://www.opendata.nhs.scot/dataset/cancelled-planned-operations
 temp <- tempfile()
-source <- "https://www.opendata.nhs.scot/dataset/479848ef-41f8-44c5-bfb5-666e0df8f574/resource/df65826d-0017-455b-b312-828e47df325b/download/cancellations_scotland_august_2020.csv"
+source <- "https://www.opendata.nhs.scot/dataset/479848ef-41f8-44c5-bfb5-666e0df8f574/resource/df65826d-0017-455b-b312-828e47df325b/download/cancellations_scotland_october_2020.csv"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
 data <- read.csv(temp)[,c(1,3,5,7,9,11,13)]
 
