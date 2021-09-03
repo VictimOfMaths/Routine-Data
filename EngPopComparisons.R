@@ -75,7 +75,7 @@ ggplot(data %>% filter(dose=="1st"))+
   theme_custom()+
   theme(panel.grid.major.x=element_line(colour="Grey95"))+
   labs(title="Even within age groups, population size is more uncertain in London",
-       subtitle="2 dose vaccine coverage by age using population estimates from ONS (hollow circles) and NIMS (filled circles)",
+       subtitle="2 dose vaccine coverage by age using population estimates from NIMS (hollow circles) and ONS (filled circles)",
        caption="Data from NHS England & ONS | Plot by @VictimOfMaths")
 dev.off()  
 
@@ -107,7 +107,7 @@ ggplot(totaldata2 %>% filter(dose=="2nd"))+
   theme_custom()+
   theme(panel.grid.major.x=element_line(colour="Grey95"))+
   labs(title="Population data makes a big difference to estimates of vaccine coverage",
-       subtitle="2 dose vaccine coverage by age using population estimates from ONS (hollow circles) and NIMS (filled circles)",
+       subtitle="2 dose vaccine coverage by age using population estimates from NIMS (hollow circles) and ONS (filled circles)",
        caption="Data from NHS England & ONS| Plot by @VictimOfMaths")
 dev.off()  
 
@@ -133,6 +133,6 @@ ggplot(regdata %>% filter(dose=="2nd"))+
   theme_custom()+
   theme(panel.grid.major.x=element_line(colour="Grey95"))+
   labs(title="London's vaccination coverage is the most uncertain",
-       subtitle="2 dose vaccine coverage by region using population estimates from ONS (hollow circles) and NIMS (filled circles)",
+       subtitle="2 dose vaccine coverage by region using population estimates from NIMS (hollow circles) and ONS (filled circles)",
        caption="Data from NHS England & ONS| Plot by @VictimOfMaths")
 dev.off()  
