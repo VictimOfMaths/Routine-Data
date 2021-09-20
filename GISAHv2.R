@@ -94,6 +94,19 @@ ggplot(tiles %>% filter(Country %in% c("Australia", "Austria", "Belgium", "Canad
        caption="Data from WHO GISAH database | Plot by @VictimOfMaths")
 dev.off()
 
+agg_tiff("Outputs/GISAHHeatmap.tiff", units="in", width=9, height=20, res=800)
+ggplot(tiles, aes(x=year, y=fct_reorder(Country, peakyear), fill=peakprop))+
+  geom_tile(show.legend=FALSE)+
+  scale_x_continuous(breaks=seq(1960, 2020, by=10), name="")+
+  scale_y_discrete(name="")+
+  scale_fill_distiller(palette="Spectral", na.value="White")+
+  theme_custom()+
+  theme(plot.title=element_text(size=rel(1.5)))+
+  labs(title="When did alcohol consumption peak?",
+       subtitle="Per capita alcohol consumption as a proportion of each country's 1960-2019 peak.\nYears with missing data appear in white.",
+       caption="Data from WHO GISAH database | Plot by @VictimOfMaths")
+dev.off()
+
 #Slightly bonkers ridgeplot
 ggplot(tiles %>% filter(Country %in% c("Australia", "Austria", "Belgium", "Canada", "Chile", "Colombia",
                                        "Costa Rica", "Czech Republic", "Denmark", "Estonia", "Finland", 
