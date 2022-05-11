@@ -7,6 +7,8 @@ library(extrafont)
 library(ragg)
 library(ggtext)
 library(readxl)
+library(paletteer)
+library(ggrepel)
 
 theme_custom <- function() {
   theme_classic() %+replace%
@@ -135,5 +137,95 @@ ggplot(agechanges %>% filter(Period=="2018-2020" & Metric=="Life expectancy (LE)
   facet_wrap(~`IMD Decile`)+
   theme_custom()
 
+agg_png("Outputs/HLETrendsEngxIMDxSex.png", units="in", width=8, height=6, res=500)
+rawdata %>% filter(Ageband==1 & Period!="2018-2020") %>% 
+  ggplot(aes(x=Period, y=`Healthy life expectancy (HLE)`, colour=as.factor(`IMD Decile`), group=as.factor(`IMD Decile`)))+
+  geom_line()+
+  scale_x_discrete(name="", labels=c("2011\n-2013", "", "2013\n-2015", "", "2015\n-2017", "",
+                                     "2017\n-2019"))+
+  scale_colour_paletteer_d("dichromat::BrowntoBlue_10", name="IMD Decile", labels=c("1 - most deprived", "2", 
+                                                                             "3", "4", "5", "6", "7", 
+                                                                             "8", "9", 
+                                                                             "10 - least deprived"),
+                           guide = guide_legend(reverse = TRUE))+
+  facet_wrap(~Sex)+
+  theme_custom()+
+  labs(title="Healthy Life Expectancy has changed little in recent years",
+       subtitle="Expected number of years at birth living in `good` or `very good` health in England",
+       caption="Data from ONS | Plot by @VictimOfMaths")
 
+dev.off()
 
+agg_png("Outputs/LETrendsEngxIMDxSex.png", units="in", width=8, height=6, res=500)
+rawdata %>% filter(Ageband==1 & Period!="2018-2020") %>% 
+  ggplot(aes(x=Period, y=`Life expectancy (LE)`, colour=as.factor(`IMD Decile`), group=as.factor(`IMD Decile`)))+
+  geom_line()+
+  scale_x_discrete(name="", labels=c("2011\n-2013", "", "2013\n-2015", "", "2015\n-2017", "",
+                                     "2017\n-2019"))+
+  scale_colour_paletteer_d("dichromat::BrowntoBlue_10", name="IMD Decile", labels=c("1 - most deprived", "2", 
+                                                                             "3", "4", "5", "6", "7", 
+                                                                             "8", "9", 
+                                                                             "10 - least deprived"),
+                           guide = guide_legend(reverse = TRUE))+
+  facet_wrap(~Sex)+
+  theme_custom()+
+  labs(title="Life Expectancy has become more unequal",
+       subtitle="Life Expectancy at birth in England by deciles of the Index of Multiple Deprivation (IMD)",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+
+dev.off()
+
+changes <- rawdata %>% 
+  filter(Ageband==1 & Period %in% c("2011-2013", "2017-2019")) %>% 
+  group_by(`IMD Decile`, Sex) %>% 
+  mutate(LEchange=`Life expectancy (LE)`[Period=="2017-2019"]-
+           `Life expectancy (LE)`[Period=="2011-2013"],
+         HLEchange=`Healthy life expectancy (HLE)`[Period=="2017-2019"]-
+           `Healthy life expectancy (HLE)`[Period=="2011-2013"]) %>% 
+  ungroup() %>% 
+  filter(Period=="2011-2013") %>% 
+  gather(Metric, Change, c(LEchange, HLEchange)) %>% 
+  mutate(Metric=if_else(Metric=="LEchange", "Life Expectancy", "Healthy Life Expectancy"),
+         Metric=factor(Metric, levels=c("Life Expectancy", "Healthy Life Expectancy")))
+
+agg_png("Outputs/LEHLEChangesEngxIMDxSex.png", units="in", width=10, height=6, res=500)
+ggplot(changes, aes(x=as.factor(`IMD Decile`), y=Change, fill=as.factor(`IMD Decile`)))+
+  geom_col(show.legend=FALSE)+
+  geom_hline(yintercept=0, colour="Black")+
+  scale_x_discrete(name="IMD Decile", labels=c("1\nmost\ndeprived", "2", "3", "4", "5", "6", "7", "8", 
+                                               "9", "10\nleast\ndeprived"))+
+  scale_y_continuous(name="Change between 2011-13 & 2017-19\n(years)")+
+  scale_fill_paletteer_d("dichromat::BrowntoBlue_10")+
+  facet_grid(Metric~Sex)+
+  theme_custom()+
+  labs(title="England is becoming more unequal",
+       subtitle="Changes in Life Expectancy and Healthy Life Expectancy at birth between 2011-13 and 2017-19\nby sex and deciles of the Index of Multiple Deprivation",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
+#Longer-term context from ONS
+#https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/articles/ourpopulationwherearewehowdidwegetherewherearewegoing/2020-03-27
+source <- "https://www.ons.gov.uk/visualisations/dvc775/fig4/line_chart1/datadownload.csv"
+temp <- tempfile()
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+
+LEtrends <- read.csv(temp) %>% 
+  set_names("Year", "Male", "Female") %>% 
+  gather(Sex, LE, c(Male, Female))
+
+agg_png("Outputs/LETrendsLongTermxSex.png", units="in", width=8, height=6, res=500)
+ggplot(LEtrends %>% filter(Year>1951), aes(x=Year, y=LE, colour=Sex))+
+  geom_line(show.legend=FALSE)+
+  geom_text_repel(data=LEtrends %>% filter(Year==max(Year)),
+                  aes(x=max(Year), y=LE, label = Sex, 
+                      colour=Sex),
+                  family = "Calibri", direction = "y", xlim = c(2019, NA),
+                  hjust = 0, segment.color = NA, box.padding = .3, show.legend = FALSE)+
+  scale_x_continuous(name="", limits=c(1951, 2022))+
+  scale_y_continuous(name="Life Expectancy")+
+  scale_colour_manual(values=c("#00cc99", "#6600cc"))+
+  theme_custom()+
+  labs(title="Life Expectancy gains stagnated in the 2010s",
+       subtitle="Life Expectancy at birth in England by Sex in the last 70 years",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
