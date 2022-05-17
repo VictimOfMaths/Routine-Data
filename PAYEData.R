@@ -11,6 +11,7 @@ library(ggtext)
 library(paletteer)
 library(scales)
 library(ggrepel)
+library(sf)
 
 theme_custom <- function() {
   theme_classic() %+replace%
@@ -152,5 +153,55 @@ ggplot()+
   theme(panel.grid.major.y = element_line(colour="Grey93"))+
   labs(title="Some sectors that saw little change in wages in early 2020 have seen little change since",
        subtitle="Mean monthly pay from PAYE data by industry, seasonally adjusted",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
+#Download NUTS3 region data
+NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX100") %>% 
+  gather(NUTS3NM, Pay, c(2:180)) %>% 
+  mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
+  group_by(NUTS3NM) %>% 
+  mutate(Pay_Indexed=Pay/Pay[Date==as.Date("2020-01-01")]) %>% 
+  ungroup() %>% 
+  #Bring in NUTS3 codes
+  merge(as.data.frame(t(read_excel(temp, sheet="17. Mean pay (NUTS3)", range="B6:FX7", col_names=FALSE))) %>% 
+          set_names("NUTS3CD", "NUTS3NM"))
+
+#Download NUTS3 shapefile
+temp <- tempfile()
+temp2 <- tempfile()
+source <- "https://opendata.arcgis.com/api/v3/datasets/473aefdcee19418da7e5dbfdeacf7b90_1/downloads/data?format=shp&spatialRefId=27700"
+temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
+unzip(zipfile=temp, exdir=temp2)
+
+shapefile_NUTS3 <- st_read(file.path(temp2,"NUTS_Level_3_(January_2018)_Boundaries.shp")) %>% 
+  rename("NUTS3CD"="nuts318cd")
+
+paymap <- left_join(shapefile_NUTS3, NUTS3data %>% filter(Date==max(Date)))
+
+agg_png("Outputs/PAYEMeanPayMap.png", units="in", width=9, height=10, res=800)
+ggplot(paymap, aes(geometry=geometry, fill=Pay))+
+  geom_sf(colour=NA)+
+  scale_fill_paletteer_c("viridis::mako", limits=c(0,NA), direction=-1)+
+  theme_void()
+dev.off()
+
+paychangemap <- left_join(shapefile_NUTS3, NUTS3data %>% filter(Date==max(Date)))
+
+agg_png("Outputs/PAYEMeanPayChangeMap.png", units="in", width=7, height=8, res=800)
+ggplot(paychangemap, aes(geometry=geometry, fill=Pay_Indexed-1))+
+  geom_sf(colour=NA)+
+  scale_fill_paletteer_c("viridis::mako", direction=-1, limits=c(0,NA), 
+                         labels=label_percent(accuracy=1), name="Change in mean\npay since\nJan 2020")+
+  theme_void()+
+  theme(plot.title=element_text(face="bold", size=rel(2), hjust=0,
+                                 margin=margin(0,0,5.5,0)),
+         text=element_text(family="Lato"),
+         plot.subtitle=element_text(colour="Grey40", hjust=0, vjust=1),
+         plot.caption=element_text(colour="Grey40", hjust=1, vjust=1, size=rel(0.8)),
+         legend.text=element_text(colour="Grey40"),
+         legend.title=element_text(colour="Grey20"))+
+  labs(title="Wages are rising fastest in the South East",
+       subtitle="Change in mean monthly PAYE pay since January 2020 by NUTS3 region,\nseasonally adjusted",
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
