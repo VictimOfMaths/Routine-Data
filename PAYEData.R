@@ -30,11 +30,11 @@ theme_custom <- function() {
 
 #Download ONS PAYE data
 temp <- tempfile()
-wardurl <- "https://www.ons.gov.uk/file?uri=%2femploymentandlabourmarket%2fpeopleinwork%2fearningsandworkinghours%2fdatasets%2frealtimeinformationstatisticsreferencetableseasonallyadjusted%2fcurrent/rtisamay2022.xlsx"
+wardurl <- "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/realtimeinformationstatisticsreferencetableseasonallyadjusted/current/rtisajul2022.xlsx"
 temp <- curl_download(url=wardurl, destfile=temp, quiet=FALSE, mode="wb")
 
 #Pay distribution data
-distdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H97") %>% 
+distdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H99") %>% 
   gather(Percentile, Pay, c(2:8)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Percentile) %>% 
@@ -56,8 +56,28 @@ ggplot(distdata %>% filter(Date>as.Date("2019-12-30")),
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
 
+annualdistdata <- distdata %>% 
+  group_by(Percentile) %>% 
+  mutate(paygrowth=(Pay-lag(Pay, 12))/Pay) %>% 
+  ungroup()
+
+agg_png("Outputs/PAYEGrowth.png", units="in", width=9, height=6, res=800)
+ggplot(annualdistdata, aes(x=Date, y=paygrowth, colour=Percentile))+
+  geom_hline(yintercept=0, colour="Grey40")+
+  geom_line()+
+  scale_x_date(name="", labels=c("", "Jan\n2016",  "Jan\n2018", "Jan\n2020", "Jan\n2022", ""),
+               limits=c(as.Date("2015-09-01"), NA_Date_))+
+  scale_y_continuous(name="Annual relative pay growth", label=label_percent(accuracy=1))+
+  scale_colour_paletteer_d("rcartocolor::Geyser", name="", direction=-1)+
+  theme_custom()+
+  theme(panel.grid.major.y = element_line(colour="Grey93"), plot.title=element_markdown())+
+  labs(title="Current wage growth is highest in <span style='color:#008080;'>high earners</span> and lowest in <span style='color:#CA562C;'>low earners</span>",
+       subtitle="Annual pay growth from PAYE data across the pay distribution, seasonally adjusted",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
 #Mean pay data by industry
-inddata <- read_excel(temp, sheet="25. Mean pay (Industry)", range="A7:V100") %>% 
+inddata <- read_excel(temp, sheet="25. Mean pay (Industry)", range="A7:V102") %>% 
   gather(Industry, Pay, c(2:22)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Industry) %>% 
@@ -157,7 +177,7 @@ ggplot()+
 dev.off()
 
 #Download NUTS3 region data
-NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX100") %>% 
+NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX102") %>% 
   gather(NUTS3NM, Pay, c(2:180)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(NUTS3NM) %>% 
