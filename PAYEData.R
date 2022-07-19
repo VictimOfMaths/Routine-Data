@@ -76,6 +76,29 @@ ggplot(annualdistdata, aes(x=Date, y=paygrowth, colour=Percentile))+
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
 
+#long-term cumulative
+longdistdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H99") %>% 
+  gather(Percentile, Pay, c(2:8)) %>% 
+  mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
+  group_by(Percentile) %>% 
+  mutate(Pay_Indexed=Pay/Pay[Date==as.Date("2014-09-01")]) %>% 
+  ungroup()
+
+agg_png("Outputs/PAYEDistributionlong.png", units="in", width=9, height=6, res=800)
+ggplot(longdistdata %>% filter(Date>as.Date("2014-08-01")), 
+       aes(x=Date, y=Pay_Indexed-1, colour=Percentile))+
+  geom_line()+
+  scale_x_date(name="", labels=c("", "Jan\n2016",  "Jan\n2018", "Jan\n2020", "Jan\n2022", ""))+
+  scale_y_continuous(name="Change in pay since September 2014", label=label_percent(accuracy=1))+
+  scale_colour_paletteer_d("rcartocolor::Geyser", name="", direction=-1)+
+  theme_custom()+
+  theme(panel.grid.major.y = element_line(colour="Grey93"),
+        plot.title=element_markdown())+
+  labs(title="Cumulative wage growth since Sept 2014 is highest in <span style='color:#CA562C;'>low earners</span>,<br>but <span style='color:#008080;'>high earners</span> are catching up",
+       subtitle="3-month rolling average monthly pay from PAYE data across the pay distribution, seasonally adjusted",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
 #Mean pay data by industry
 inddata <- read_excel(temp, sheet="25. Mean pay (Industry)", range="A7:V102") %>% 
   gather(Industry, Pay, c(2:22)) %>% 
