@@ -37,7 +37,7 @@ rawspirits <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Spir
   set_names("Date", "Spirit.Rate")
 
 #Set up date framework
-dates <- data.frame(Date=seq.Date(from=as.Date("1950-04-19"), to=as.Date("2021-09-30"),
+dates <- data.frame(Date=seq.Date(from=as.Date("1950-04-19"), to=as.Date("2022-09-23"),
                                    by="days"))
 
 WineABV <- 0.125
@@ -71,7 +71,7 @@ data <- merge(dates, rawbeer, all.x=TRUE) %>%
 
 #Bring in RPI data
 temp <- tempfile()
-url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=09&toYear=2021&frequency=months"
+url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=08&toYear=2022&frequency=months"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 
 RPIdata <- read.csv(temp)[-c(1:5),] 
@@ -94,17 +94,17 @@ data <- data %>%
                           drink=="Spirit" ~ "Spirits",
                           TRUE ~ drink))
 
-agg_tiff("Outputs/HMRCDutyRateLong.tiff", units="in", width=8, height=6, res=500)
+agg_tiff("Outputs/HMRCDutyRateLong.tiff", units="in", width=8, height=6, res=600)
 ggplot(data %>% filter(metric=="PPU" & Date>=as.Date("1979-01-01")))+ 
   geom_line(aes(x=Date, y=values, colour=drink), show.legend=FALSE)+
-  scale_x_date(name="", limits=c(as.Date("1979-01-01"), as.Date("2028-10-01")))+
+  scale_x_date(name="", limits=c(as.Date("1979-01-01"), as.Date("2029-10-01")))+
   scale_y_continuous(name="Average duty rate payable per unit", breaks=c(0,0.1,0.2,0.3),
                      labels=c("0", "10p", "20p", "30p"))+
   scale_colour_manual(values=c("#F7AA14", "#2CB11B", "#FC6882","#0099D5", "#C70E7B"), name="")+
   geom_text_repel(data=data %>% filter(metric=="PPU" & Date==max(Date)),
     aes(x=Date, y=values, color = drink, label = labels),
     family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-    xlim = c(as.Date("2022-02-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+    xlim = c(as.Date("2023-02-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey90"), plot.margin = unit(c(1,1,1,1), "lines"))+
   labs(title="Alcohol duty rates are as high as they've ever been",
@@ -112,21 +112,39 @@ ggplot(data %>% filter(metric=="PPU" & Date>=as.Date("1979-01-01")))+
        caption="Data from HMRC, IFS, BBPA & HMT | Plot by @VictimOfMaths")
 dev.off()
 
-agg_tiff("Outputs/HMRCDutyRateLongReal.tiff", units="in", width=8, height=6, res=500)
+agg_tiff("Outputs/HMRCDutyRateLongReal.tiff", units="in", width=8, height=6, res=600)
 ggplot(data %>% filter(metric=="PPU" & Date>=as.Date("1979-01-01")))+ 
   geom_line(aes(x=Date, y=values.adj, colour=drink), show.legend=FALSE)+
-  scale_x_date(name="", limits=c(as.Date("1979-01-01"), as.Date("2028-06-01")))+
+  scale_x_date(name="", limits=c(as.Date("1979-01-01"), as.Date("2029-12-01")))+
   scale_y_continuous(name="Average duty rate payable per unit", breaks=c(0,0.1,0.2,0.3, 0.4, 0.5, 0.6),
                      labels=c("0", "10p", "20p", "30p", "40p", "50p", "60p"), limits=c(0,NA))+
   scale_colour_manual(values=c("#F7AA14", "#2CB11B", "#FC6882","#0099D5", "#C70E7B"), name="")+
   geom_text_repel(data=data %>% filter(metric=="PPU" & Date==max(Date)),
                   aes(x=Date, y=values, color = drink, label = labels),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2022-02-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+                  xlim = c(as.Date("2023-02-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey90"), plot.margin = unit(c(1,1,1,1), "lines"))+
   labs(title="In real terms alcohol duty is at historically low rates",
-       subtitle="Mean alcohol duty payable per unit of alcohol in the UK, adjusted to September 2021 prices",
+       subtitle="Mean alcohol duty payable per unit of alcohol in the UK, adjusted to August 2022 prices",
+       caption="Data from HMRC, IFS, BBPA & HMT | Plot by @VictimOfMaths")
+dev.off()
+
+agg_tiff("Outputs/HMRCDutyRateShortReal.tiff", units="in", width=8, height=6, res=500)
+ggplot(data %>% filter(metric=="PPU" & Date>=as.Date("2012-05-01")))+ 
+  geom_line(aes(x=Date, y=values.adj, colour=drink), show.legend=FALSE)+
+  scale_x_date(name="", limits=c(as.Date("2012-01-01"), as.Date("2024-05-01")))+
+  scale_y_continuous(name="Average duty rate payable per unit", breaks=c(0,0.1,0.2,0.3),
+                     labels=c("0", "10p", "20p", "30p"), limits=c(0,NA))+
+  scale_colour_manual(values=c("#F7AA14", "#2CB11B", "#FC6882","#0099D5", "#C70E7B"), name="")+
+  geom_text_repel(data=data %>% filter(metric=="PPU" & Date==max(Date)),
+                  aes(x=Date, y=values, color = drink, label = labels),
+                  family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
+                  xlim = c(as.Date("2022-10-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  theme_custom()+
+  theme(panel.grid.major.y=element_line(colour="Grey90"), plot.margin = unit(c(1,1,1,1), "lines"))+
+  labs(title="Alcohol duty rates have fallen in real terms in the last decade",
+       subtitle="Mean alcohol duty payable per unit of alcohol in the UK, adjusted to August 2022 prices",
        caption="Data from HMRC, IFS, BBPA & HMT | Plot by @VictimOfMaths")
 dev.off()
 
@@ -255,10 +273,12 @@ dev.off()
 url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindices/current/mm23.csv"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 
-RPIdata <- read.csv(temp) %>% 
-  slice_tail(n=nrow(.)-523) %>% 
-  #Select indices we want
-  select(c(1,16,21,28, 3251, 3253, 3254, 3255, 3257, 3259)) %>% 
+RPIdata <- bind_rows(read.csv(temp) %>% slice(., 1), 
+                     read.csv(temp) %>% slice_tail(., n=(nrow(.)-526))) %>% 
+  set_names(slice(., 1)) %>% 
+  slice_tail(., n=nrow(.)-1) %>% 
+  #Select indices we want D7CA, D7C9, D7BT, DOBH, DOBI, DOBJ, DOBK, DOBL, DOBM
+  select(CDID, D7CA, D7C9, D7BT, DOBH, DOBI, DOBJ, DOBK, DOBL, DOBM) %>% 
   set_names("date", "Alc.CPI", "NonAlc.CPI", "All.CPI", "Beer.RPI", "OnBeer.RPI", "OffBeer.RPI", "WineSpirits.RPI", 
             "OnWineSpirits.RPI", "OffWineSpirits.RPI") %>% 
   mutate(date=as.Date(paste0(date, " 1"), "%Y %b %d")) %>% 
