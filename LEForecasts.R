@@ -9,6 +9,7 @@ library(ragg)
 library(ggtext)
 library(ggrepel)
 library(extrafont)
+library(shadowtext)
 
 #Set common font for all plots
 font <- "Lato"
@@ -131,7 +132,7 @@ rawold_m <- read_excel(temp, sheet="Data", range="B2:BO26") %>%
          YearMade=if_else(`...1`!="Actual", as.numeric(substr(`...1`, 1,4)), 1970)) %>% 
   gather(Year, e0, c(2:66)) %>% 
   mutate(Year=as.numeric(Year), Sex="Male",
-         Year=if_else(Year==2012, 2011.99, Year)) %>% 
+         YearMade=if_else(YearMade==2012, 2011.99, YearMade)) %>% 
   group_by(Year) %>% 
   mutate(Actual=e0[Type=="Actual"]) %>% 
   ungroup() %>% 
@@ -145,7 +146,7 @@ rawold_f <- read_excel(temp, sheet="Data", range="B30:BO54") %>%
          YearMade=if_else(`...1`!="Actual", as.numeric(substr(`...1`, 1,4)), 1970)) %>% 
   gather(Year, e0, c(2:66)) %>% 
   mutate(Year=as.numeric(Year), Sex="Female",
-         Year=if_else(Year==2012, 2011.99, Year)) %>% 
+         YearMade=if_else(YearMade==2012, 2011.99, YearMade)) %>% 
   group_by(Year) %>% 
   mutate(Actual=e0[Type=="Actual"]) %>% 
   ungroup() %>% 
@@ -155,7 +156,7 @@ rawold_f <- read_excel(temp, sheet="Data", range="B30:BO54") %>%
 
 #Stitch together
 data <- bind_rows(raw2020_m, raw2020_f, raw2018_m, raw2018_f, raw2016_m, raw2016_f, raw2014_m,
-                  raw2014_f, raw2012_m, raw2012_f, rawold_m, rawold_m, rawold_f)
+                  raw2014_f, raw2012_m, raw2012_f, rawold_m, rawold_f)
 
 agg_tiff("Outputs/LEForecastsUK.tiff", units="in", width=9, height=6, res=600)
 ggplot()+
@@ -169,5 +170,85 @@ ggplot()+
   labs(title="ONS life expectancy forecasts were pessimistic, until they weren't",
        subtitle="Successive ONS forecasts of period life expectancy at birth for the UK compared to <span style='color:#6600cc;'>actual values",
        caption="Data from ONS | Original idea from @JonMinton | Plot by @VictimOfMaths")
+
+dev.off()
+
+MaxYear <- 2040
+
+data_ends <- data %>% 
+  filter(Type=="Forecast" & Year<=MaxYear) %>% 
+  group_by(YearMade) %>% 
+  mutate(EndYear=max(Year)) %>% 
+  ungroup() %>% 
+  filter(Year==EndYear)
+
+ann_text=data.frame(Sex=c("Female", "Female", "Female"),
+                    Year=c(2009, 2039, 2022),
+                    e0=c(78.8, 83.8, 87.5),
+                    label=c("1971 forecast", "2020\nForecast",
+                            "The 2008 forecast\nwas the most optimistic"))
+
+agg_tiff("Outputs/LEForecastsUKDots.tiff", units="in", width=9, height=6, res=800)
+ggplot()+
+  geom_line(data=data, aes(x=Year, y=e0, group=YearMade), colour="Grey80")+
+  geom_point(data=data_ends, aes(x=Year, y=e0), shape=21, size=rel(2))+
+  geom_point(data=data_ends, aes(x=Year, y=e0, colour=YearMade), show.legend=FALSE)+
+  geom_line(data=data %>% filter(Type=="Actual"), aes(x=Year, y=e0), colour="Black")+
+  geom_shadowtext(data=ann_text, aes(x=Year, y=e0, label=label),
+            size=rel(2.7), family=font, colour="Black",
+            bg.colour="White")+
+  scale_x_continuous(name="", limits=c(1970, MaxYear))+
+  scale_y_continuous(name="Life expectancy at birth")+
+  scale_colour_paletteer_c("scico::tofino")+
+  theme_custom()+
+  theme(plot.subtitle=element_markdown())+
+  facet_wrap(~Sex)+
+  labs(title="ONS life expectancy forecasts were pessimistic, until they weren't",
+       subtitle="Successive ONS forecasts of period life expectancy at birth for the UK compared to <span style='color:Black;'>actual values",
+       caption="Data from ONS | Original idea from @JonMinton | Plot by @VictimOfMaths")+
+  coord_cartesian(clip="off")
+
+dev.off()
+
+#Calculate cumulative prediction error
+
+errors <- data %>% 
+  na.omit() %>% 
+  filter(Type=="Forecast" & Year>=YearMade) %>% 
+  merge(data %>% filter(Type=="Actual") %>% 
+          rename("Actual"="e0") %>% 
+          select(Year, Actual, Sex) %>%
+          group_by(Year, Sex) %>% 
+          slice_head(n=1)) %>% 
+  distinct() %>% 
+  group_by(Sex, YearMade) %>% 
+  arrange(Year) %>% 
+  mutate(error=cumsum(e0-Actual)) %>% 
+  ungroup()
+
+agg_tiff("Outputs/LEForecastsUKError.tiff", units="in", width=9, height=6, res=800)
+ggplot(errors, aes(x=Year, y=error, group=YearMade, colour=YearMade))+
+  geom_hline(yintercept=0, colour="Grey30")+
+  geom_line(show.legend=FALSE)+
+  scale_x_continuous(name="")+
+  scale_y_continuous(name="Cumulative difference between\nforecast and actual life expectancy")+
+  scale_colour_paletteer_c("scico::tofino")+
+  facet_wrap(~Sex)+
+  theme_custom()
+
+dev.off()
+
+agg_tiff("Outputs/LEForecastsUKErrorBased.tiff", units="in", width=9, height=6, res=800)
+ggplot(errors, aes(x=Year-YearMade, y=error, group=YearMade, colour=YearMade))+
+  geom_hline(yintercept=0, colour="Grey30")+
+  geom_line()+
+  scale_x_continuous(name="")+
+  scale_y_continuous(name="Cumulative difference between\nforecast and actual life expectancy")+
+  scale_colour_paletteer_c("scico::tofino", name="Year of forecast")+
+  facet_wrap(~Sex)+
+  theme_custom()+
+  labs(title="UK Life Expectancy forecasts have been getting more optimistic",
+       subtitle="Cumulative difference between successive ONS forecasts of Life Expectancy at birth and the subsequent actual trends",
+       caption="Data from ONS | Plot by @VictimOfMaths")
 
 dev.off()
