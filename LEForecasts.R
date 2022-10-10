@@ -242,7 +242,7 @@ agg_tiff("Outputs/LEForecastsUKErrorBased.tiff", units="in", width=9, height=6, 
 ggplot(errors, aes(x=Year-YearMade, y=error, group=YearMade, colour=YearMade))+
   geom_hline(yintercept=0, colour="Grey30")+
   geom_line()+
-  scale_x_continuous(name="")+
+  scale_x_continuous(name="Years since forecast made")+
   scale_y_continuous(name="Cumulative difference between\nforecast and actual life expectancy")+
   scale_colour_paletteer_c("scico::tofino", name="Year of forecast")+
   facet_wrap(~Sex)+
