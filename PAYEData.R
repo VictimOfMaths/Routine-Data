@@ -30,11 +30,11 @@ theme_custom <- function() {
 
 #Download ONS PAYE data
 temp <- tempfile()
-wardurl <- "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/realtimeinformationstatisticsreferencetableseasonallyadjusted/current/rtisajul2022.xlsx"
+wardurl <- "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/realtimeinformationstatisticsreferencetableseasonallyadjusted/current/rtisaoct2022.xlsx"
 temp <- curl_download(url=wardurl, destfile=temp, quiet=FALSE, mode="wb")
 
 #Pay distribution data
-distdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H99") %>% 
+distdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H102") %>% 
   gather(Percentile, Pay, c(2:8)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Percentile) %>% 
@@ -45,7 +45,9 @@ agg_png("Outputs/PAYEDistribution.png", units="in", width=9, height=6, res=800)
 ggplot(distdata %>% filter(Date>as.Date("2019-12-30")), 
        aes(x=Date, y=Pay_Indexed-1, colour=Percentile))+
   geom_line()+
-  scale_x_date(name="", labels=c("", "Jan\n2020", "July\n2020", "Jan\n2021", "July\n2021", "Jan\n2022", ""))+
+  scale_x_date(name="", breaks=seq(from=as.Date("2020-01-01"), by="6 months", length.out=6),
+               labels=c("Jan\n2020", "July\n2020", "Jan\n2021", "July\n2021", "Jan\n2022", 
+                                 "July\n2022"))+
   scale_y_continuous(name="Change in pay since January 2020", label=label_percent(accuracy=1))+
   scale_colour_paletteer_d("rcartocolor::Geyser", name="", direction=-1)+
   theme_custom()+
@@ -76,8 +78,24 @@ ggplot(annualdistdata, aes(x=Date, y=paygrowth, colour=Percentile))+
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
 
+agg_png("Outputs/PAYEGrowthShort.png", units="in", width=9, height=6, res=800)
+ggplot(annualdistdata %>% filter(Date>=as.Date("2020-01-01")), 
+       aes(x=Date, y=paygrowth, colour=Percentile))+
+  geom_hline(yintercept=0, colour="Grey40")+
+  geom_line()+
+  scale_x_date(name="", breaks=as.Date(c("2020-01-01", "2021-01-01", "2022-01-01")),
+               labels=c("Jan\n2020", "Jan\n2021", "Jan\n2022"))+
+  scale_y_continuous(name="Annual relative pay growth", label=label_percent(accuracy=1))+
+  scale_colour_paletteer_d("rcartocolor::Geyser", name="", direction=-1)+
+  theme_custom()+
+  theme(panel.grid.major.y = element_line(colour="Grey93"), plot.title=element_markdown())+
+  labs(title="Recent wage growth is highest in <span style='color:#008080;'>high earners</span> and lowest in <span style='color:#CA562C;'>low earners</span>",
+       subtitle="Annual pay growth from PAYE data across the pay distribution, seasonally adjusted",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
+
 #long-term cumulative
-longdistdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H99") %>% 
+longdistdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H102") %>% 
   gather(Percentile, Pay, c(2:8)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Percentile) %>% 
@@ -100,7 +118,7 @@ ggplot(longdistdata %>% filter(Date>as.Date("2014-08-01")),
 dev.off()
 
 #Mean pay data by industry
-inddata <- read_excel(temp, sheet="25. Mean pay (Industry)", range="A7:V102") %>% 
+inddata <- read_excel(temp, sheet="25. Mean pay (Industry)", range="A7:V105") %>% 
   gather(Industry, Pay, c(2:22)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Industry) %>% 
@@ -200,7 +218,7 @@ ggplot()+
 dev.off()
 
 #Download NUTS3 region data
-NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX102") %>% 
+NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX105") %>% 
   gather(NUTS3NM, Pay, c(2:180)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(NUTS3NM) %>% 
@@ -213,7 +231,7 @@ NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX102") %>
 #Download NUTS3 shapefile
 temp <- tempfile()
 temp2 <- tempfile()
-source <- "https://opendata.arcgis.com/api/v3/datasets/473aefdcee19418da7e5dbfdeacf7b90_1/downloads/data?format=shp&spatialRefId=27700"
+source <- "http://geoportal1-ons.opendata.arcgis.com/datasets/473aefdcee19418da7e5dbfdeacf7b90_2.zip?outSR={%22latestWkid%22:27700,%22wkid%22:27700}"
 temp <- curl_download(url=source, destfile=temp, quiet=FALSE, mode="wb")
 unzip(zipfile=temp, exdir=temp2)
 
