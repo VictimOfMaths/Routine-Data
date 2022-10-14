@@ -13,6 +13,8 @@ library(scales)
 library(ggrepel)
 library(sf)
 
+options(scipen=99999)
+
 theme_custom <- function() {
   theme_classic() %+replace%
     theme(plot.title.position="plot", plot.caption.position="plot",
@@ -145,10 +147,48 @@ inactive <- bind_rows(inactive_p, inactive_m, inactive_f) %>%
   select(-Code)
 
 data <- bind_rows(activity, inactive) %>% 
-  mutate(Year=as.integer(substr(Date, nchar(Date)-4, nchar(Date))),
+  mutate(Year=as.numeric(substr(Date, nchar(Date)-4, nchar(Date))),
          Month=substr(Date, 1, 3),
+         Year=if_else(Month %in% c("Nov", "Dec"), Year-1, Year),
          date=as.Date(paste(Year, Month, "15", sep="-"), format="%Y-%b-%d"))
 
-ggplot(data %>% filter(Level2b==TRUE & Sex=="People"), aes(x=date, y=Count, fill=Status))+
-  geom_area(position="fill")+
-  theme_custom()
+agg_tiff("Outputs/EconInactiveStatus.tiff", units="in", width=9, height=6, res=600)
+  data %>% filter(Level2a==TRUE & Sex=="People" & date>=as.Date("2018-04-01") &
+                  !Status %in% c("Employed", "Unemployed")) %>% 
+  mutate(Status=factor(Status, levels=c("Long-term sick", "Student", "Looking after family/home",
+                                        "Retired", "Other", "Temp. sick", "Discouraged"))) %>% 
+  ggplot(aes(x=date, y=Count/1000000, colour=Status))+
+    geom_rect(aes(xmin=as.Date("2020-02-01"), xmax=as.Date("2022-07-01"), ymin=0, ymax=Inf), 
+              fill="Grey90", colour="Grey90")+
+    geom_line()+
+    scale_x_date(name="")+
+    scale_y_continuous(name="Millions of people")+
+    scale_colour_paletteer_d("colorblindr::OkabeIto", name="")+
+    theme_custom()+
+    theme(panel.grid.major.y=element_line(colour="Grey90"))+
+    labs(title="The pandemic has seen a big increase in long-term sickness",
+         subtitle="Self-reported reasons for economic inactivity - people who are out of work and not actively looking for a job",
+         caption="Data from ONS | Plot by @VictimOfMaths")
+
+  dev.off()
+  
+  agg_tiff("Outputs/EconInactiveStatusxSex.tiff", units="in", width=11, height=6, res=600)
+  data %>% filter(Level2a==TRUE & Sex!="People" & date>=as.Date("1993-04-01") &
+                    !Status %in% c("Employed", "Unemployed")) %>% 
+    mutate(Status=factor(Status, levels=c("Long-term sick", "Student", "Looking after family/home",
+                                          "Retired", "Other", "Temp. sick", "Discouraged"))) %>% 
+    ggplot(aes(x=date, y=Count/1000000, colour=Status))+
+    geom_rect(aes(xmin=as.Date("2020-02-01"), xmax=as.Date("2022-07-01"), ymin=0, ymax=Inf), 
+              fill="Grey90", colour="Grey90")+
+    geom_line()+
+    scale_x_date(name="")+
+    scale_y_continuous(name="Millions of people")+
+    scale_colour_paletteer_d("colorblindr::OkabeIto", name="")+
+    facet_wrap(~Sex)+
+    theme_custom()+
+    theme(panel.grid.major.y=element_line(colour="Grey90"))+
+    labs(title="There are big gender differences in reasons for economic inactivity",
+         subtitle="Self-reported reasons for economic inactivity - people who are out of work and not actively looking for a job",
+         caption="Data from ONS | Plot by @VictimOfMaths")
+  
+  dev.off()
