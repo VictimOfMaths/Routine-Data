@@ -153,7 +153,7 @@ data <- bind_rows(activity, inactive) %>%
          date=as.Date(paste(Year, Month, "15", sep="-"), format="%Y-%b-%d"))
 
 agg_tiff("Outputs/EconInactiveStatus.tiff", units="in", width=9, height=6, res=600)
-  data %>% filter(Level2a==TRUE & Sex=="People" & date>=as.Date("2018-04-01") &
+  data %>% filter(Level2a==TRUE & Sex=="People" & date>=as.Date("1993-04-01") &
                   !Status %in% c("Employed", "Unemployed")) %>% 
   mutate(Status=factor(Status, levels=c("Long-term sick", "Student", "Looking after family/home",
                                         "Retired", "Other", "Temp. sick", "Discouraged"))) %>% 
