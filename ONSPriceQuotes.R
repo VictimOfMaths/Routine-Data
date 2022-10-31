@@ -33,6 +33,57 @@ comparators <- c(220107, 220318)
 #Glossary for datasets can be found here: https://www.ons.gov.uk/file?uri=%2feconomy%2finflationandpriceindices%2fdatasets%2fconsumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes%2fglossary/glossaryrevised.xls
 
 #Download ONS price quotes - credit to Peter Donaghy (@peterdonaghy) for bringing this data to my attention
+#September 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesseptember2022/upload-pricequotes202209.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2209 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#August 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesaugust2022/upload-pricequotes202208.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2208 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#July 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjuly2022/upload-pricequotes202207.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2207 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#June 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjune2022/upload-pricequotes202206.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2206 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#May 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesmay2022/upload-pricequotes202205.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2205 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+################
 #April 2022
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=%2feconomy%2finflationandpriceindices%2fdatasets%2fconsumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes%2fpricequotesapril2022/upload-pricequotes202204.csv"
@@ -952,7 +1003,8 @@ data10q1 <- read_csv(file.path(temp2, "price_quote_2010_q1.csv")) %>%
 #while the item codes have remained the same
 
 #Get code to description lookup
-lookup <- bind_rows(data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
+lookup <- bind_rows(data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
+                    data2201, data2112, data2111, data2110, data2109,
                     data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                     data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
                     data2004, data2003, data2002, data2001, data1912, data1911, data1910, data1909,
@@ -972,7 +1024,7 @@ lookup <- bind_rows(data2204, data2203, data2202, data2201, data2112, data2111, 
   ungroup() %>% 
   select(-c(count, date))
 
-fulldata <- bind_rows(data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
+fulldata <- bind_rows(data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
                       data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                       data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
                       data2004, data2003, data2002, data2001, data1912, data1911, data1910, data1909,
@@ -1147,4 +1199,30 @@ ggplot(regmeans %>% filter(ITEM_DESC=="PREMIUM LAGER - PINT 4.3-7.5%"),
   labs(title="The price of a pint is highest in <span style='color:#33b983;'>London</span> and <span style='color:#bf8cfc;'>Northern Ireland",
        subtitle="Average observed price for a pint of premium lager(4.3-7.5% ABV), rolling 5-month average\n",
        caption="Data from ONS price quotes | Plot by @VictimOfMaths")
+
 dev.off()
+
+#Calculate product means
+prodmeans <- fulldata %>% 
+  group_by(ITEM_DESC, date) %>% 
+  summarise(meanprice=weighted.mean(PRICE, STRATUM_WEIGHT)) %>% 
+  ungroup() %>% 
+  #calculate rolling averages
+  group_by(ITEM_DESC) %>% 
+  mutate(roll_meanprice=roll_mean(meanprice, n=6, align="center", fill=NA)) %>% 
+  ungroup()
+
+agg_png("Outputs/ONSPriceQuotesProdPrices.png", units="in", width=8, height=6, res=500)
+prodmeans %>% 
+  filter(ITEM_DESC %in% c("WHISKY-70 CL BOTTLE", "VODKA-70 CL BOTTLE",
+                          "WHITE WINE- EUROPEAN 75CL",
+                          "RED WINE- EUROPEAN 75CL",
+                          "ROSE WINE-75CL BOTTLE",
+                          "SPARKLING WINE 75CL MIN 11%ABV",
+                          "LAGER 10 - 24 CANS (440-500ML)")) %>% 
+ggplot(aes(x=date, y=meanprice, colour=ITEM_DESC))+
+  geom_line()+
+  theme_custom()
+
+dev.off()
+
