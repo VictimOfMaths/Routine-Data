@@ -6,6 +6,7 @@ library(extrafont)
 library(forcats)
 library(scales)
 library(paletteer)
+library(lubridate)
 library(ragg)
 library(ggridges)
 library(RcppRoll)
@@ -1212,17 +1213,125 @@ prodmeans <- fulldata %>%
   mutate(roll_meanprice=roll_mean(meanprice, n=6, align="center", fill=NA)) %>% 
   ungroup()
 
-agg_png("Outputs/ONSPriceQuotesProdPrices.png", units="in", width=8, height=6, res=500)
-prodmeans %>% 
-  filter(ITEM_DESC %in% c("WHISKY-70 CL BOTTLE", "VODKA-70 CL BOTTLE",
-                          "WHITE WINE- EUROPEAN 75CL",
+labels1 <- prodmeans %>% 
+  filter(ITEM_DESC %in% c("WHITE WINE- EUROPEAN 75CL",
                           "RED WINE- EUROPEAN 75CL",
                           "ROSE WINE-75CL BOTTLE",
-                          "SPARKLING WINE 75CL MIN 11%ABV",
-                          "LAGER 10 - 24 CANS (440-500ML)")) %>% 
-ggplot(aes(x=date, y=meanprice, colour=ITEM_DESC))+
-  geom_line()+
-  theme_custom()
+                          "SPARKLING WINE 75CL MIN 11%ABV")) %>% 
+  filter(date==max(date)-months(3)) %>% 
+  mutate(label=c("Red wine", "Rose wine", "Sparkling wine", "White wine"))
+
+agg_tiff("Outputs/ONSPriceQuotesOffWine.tiff", units="in", width=8, height=6, res=500)
+prodmeans %>% 
+  filter(ITEM_DESC %in% c("WHITE WINE- EUROPEAN 75CL",
+                          "RED WINE- EUROPEAN 75CL",
+                          "ROSE WINE-75CL BOTTLE",
+                          "SPARKLING WINE 75CL MIN 11%ABV")) %>% 
+  ggplot(aes(x=date, y=roll_meanprice, colour=ITEM_DESC))+
+  geom_line(show.legend=FALSE)+
+  geom_text_repel(data=labels1, aes(x=date, y=roll_meanprice, label=label, colour=ITEM_DESC), 
+                  family = "Lato", direction = "y", xlim = c(as.Date("2022-07-10"), NA),
+                  hjust = 0, segment.color = NA, box.padding = .3, show.legend = FALSE)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-06-01")),
+               breaks=as.Date(c("2010-01-01", "2015-01-01", "2020-01-01")),
+               labels=c("2010", "2015", "2020"))+
+  scale_y_continuous(name="Average price per bottle", labels=label_dollar(prefix="£"))+
+  scale_colour_manual(values=c("#BE294C", "Pink", "#0FB2D3", "#EEEDC4"))+
+  theme_custom()+
+  labs(title="Wine prices have been rising recently",
+       subtitle="Rolling 6-month average price for a 75cl bottle of wine based ONS' price quotes data",
+       caption="Data from ONS | Plot from @VictimOfMaths")
+
+dev.off()
+
+labels2 <- prodmeans %>% 
+  filter(ITEM_DESC %in% c("CIDER 4.5%-5.5% ABV PINT/BOTTL", "DRAUGHT BITTER (PER PINT)",
+                          "LAGER - PINT 3.4-4.2%", "PREMIUM LAGER - PINT 4.3-7.5%")) %>% 
+  filter(date==max(date)-months(3)) %>% 
+  mutate(label=c("Cider", "Bitter", "Lager", "Premium Lager"))
+
+agg_tiff("Outputs/ONSPriceQuotesOnBeer.tiff", units="in", width=8, height=6, res=500)
+prodmeans %>% 
+  filter(ITEM_DESC %in% c("CIDER-PER PINT OR 500-568ML", "CIDER 4.5%-5.5% ABV PINT/BOTTL", 
+                          "DRAUGHT BITTER (PER PINT)",
+                          "LAGER - PINT 3.4-4.2%", "PREMIUM LAGER - PINT 4.3-7.5%")) %>% 
+         mutate(ITEM_DESC=if_else(ITEM_DESC=="CIDER-PER PINT OR 500-568ML",
+                                  "CIDER 4.5%-5.5% ABV PINT/BOTTL", ITEM_DESC)) %>% 
+  ggplot(aes(x=date, y=roll_meanprice, colour=ITEM_DESC))+
+  geom_line(show.legend=FALSE)+
+  geom_text_repel(data=labels2, aes(x=date, y=roll_meanprice, label=label, colour=ITEM_DESC), 
+                  family = "Lato", direction = "y", xlim = c(as.Date("2022-07-10"), NA),
+                  hjust = 0, segment.color = NA, box.padding = .3, show.legend = FALSE)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-06-01")),
+               breaks=as.Date(c("2010-01-01", "2015-01-01", "2020-01-01")),
+               labels=c("2010", "2015", "2020"))+
+  scale_y_continuous(name="Average price per pint", labels=label_dollar(prefix="£"))+
+  scale_colour_paletteer_d("awtools::mpalette")+
+  theme_custom()+
+  labs(title="The price of a pint has risen sharply",
+       subtitle="Rolling 6-month average price for a pint of cider/beer bought for consumption on the premises",
+       caption="Data from ONS Price Quotes | Plot from @VictimOfMaths")
+
+dev.off()
+
+
+labels3 <- prodmeans %>% 
+  filter(ITEM_DESC %in% c("LAGER - PINT 3.4-4.2%",
+                          "WINE, PER 175 - 250 ML SERVING",
+                          "VODKA (PER NIP) SPECIFY ML")) %>% 
+  filter(date==max(date)-months(3)) %>% 
+  mutate(label=c("Pint of lager", "Shot of vodka", "Glass of wine"))
+
+agg_tiff("Outputs/ONSPriceQuotesOnSelect.tiff", units="in", width=8, height=6, res=500)
+prodmeans %>% 
+  filter(ITEM_DESC %in% c("LAGER - PINT 3.4-4.2%",
+                          "WINE, PER 175 - 250 ML SERVING",
+                          "VODKA (PER NIP) SPECIFY ML")) %>% 
+  ggplot(aes(x=date, y=roll_meanprice, colour=ITEM_DESC))+
+  geom_line(show.legend=FALSE)+
+  geom_text_repel(data=labels3, aes(x=date, y=roll_meanprice, label=label, colour=ITEM_DESC), 
+                  family = "Lato", direction = "y", xlim = c(as.Date("2022-07-10"), NA),
+                  hjust = 0, segment.color = NA, box.padding = .3, show.legend = FALSE)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-06-01")),
+               breaks=as.Date(c("2010-01-01", "2015-01-01", "2020-01-01")),
+               labels=c("2010", "2015", "2020"))+
+  scale_y_continuous(name="Average price per bottle", labels=label_dollar(prefix="£"))+
+  scale_colour_manual(values=c("Orange", "#0FB2D3", "#BE294C"))+
+  theme_custom()+
+  labs(title="The price of drinking in the pub has risen sharply",
+       subtitle="Rolling 6-month average prices of selected items bought for consumption on the premises",
+       caption="Data from ONS' Price Quotes | Plot from @VictimOfMaths")
+
+dev.off()
+
+
+labels4 <- prodmeans %>% 
+  filter(ITEM_DESC %in% c("BITTER-4CANS-440-500ML", "LAGER 10 - 24 CANS (440-500ML)",
+                          "RED WINE- EUROPEAN 75CL", "APPLE CIDER 4 CAN PK 440-500ML",
+                          "VODKA-70 CL BOTTLE", "WHISKY-70 CL BOTTLE")) %>% 
+  filter(date==max(date)-months(3)) %>% 
+  mutate(label=c("4 cans of cider", "4 cans of bitter", "Slab of lager", 
+                 "Bottle of red wine", "Bottle of vodka", "Bottle of whisky"))
+
+agg_tiff("Outputs/ONSPriceQuotesOffSelect.tiff", units="in", width=8, height=6, res=500)
+prodmeans %>% 
+  filter(ITEM_DESC %in% c("BITTER-4CANS-440-500ML", "LAGER 10 - 24 CANS (440-500ML)",
+                          "WHITE WINE- EUROPEAN 75CL", "APPLE CIDER 4 CAN PK 440-500ML",
+                          "VODKA-70 CL BOTTLE", "WHISKY-70 CL BOTTLE")) %>% 
+  ggplot(aes(x=date, y=roll_meanprice, colour=ITEM_DESC))+
+  geom_line(show.legend=FALSE)+
+  geom_text_repel(data=labels4, aes(x=date, y=roll_meanprice, label=label, colour=ITEM_DESC), 
+                  family = "Lato", direction = "y", xlim = c(as.Date("2022-07-10"), NA),
+                  hjust = 0, segment.color = NA, box.padding = .3, show.legend = FALSE)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-06-01")),
+               breaks=as.Date(c("2010-01-01", "2015-01-01", "2020-01-01")),
+               labels=c("2010", "2015", "2020"))+
+  scale_y_continuous(name="Average price per bottle", labels=label_dollar(prefix="£"))+
+  #scale_colour_manual(values=c("Orange", "#0FB2D3", "#BE294C"))+
+  theme_custom()+
+  labs(title="The price of drinking in the pub has risen sharply",
+       subtitle="Rolling 6-month average prices of selected items bought for consumption on the premises",
+       caption="Data from ONS' Price Quotes | Plot from @VictimOfMaths")
 
 dev.off()
 
