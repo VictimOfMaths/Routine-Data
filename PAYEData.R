@@ -30,11 +30,11 @@ theme_custom <- function() {
 
 #Download ONS PAYE data
 temp <- tempfile()
-wardurl <- "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/realtimeinformationstatisticsreferencetableseasonallyadjusted/current/rtisaoct2022.xlsx"
+wardurl <- "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/realtimeinformationstatisticsreferencetableseasonallyadjusted/current/rtisanov2022.xlsx"
 temp <- curl_download(url=wardurl, destfile=temp, quiet=FALSE, mode="wb")
 
 #Pay distribution data
-distdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H102") %>% 
+distdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H103") %>% 
   gather(Percentile, Pay, c(2:8)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Percentile) %>% 
@@ -47,13 +47,13 @@ ggplot(distdata %>% filter(Date>as.Date("2019-12-30")),
   geom_line()+
   scale_x_date(name="", breaks=seq(from=as.Date("2020-01-01"), by="6 months", length.out=6),
                labels=c("Jan\n2020", "July\n2020", "Jan\n2021", "July\n2021", "Jan\n2022", 
-                                 "July\n2022"))+
+                        "July\n2022"))+
   scale_y_continuous(name="Change in pay since January 2020", label=label_percent(accuracy=1))+
   scale_colour_paletteer_d("rcartocolor::Geyser", name="", direction=-1)+
   theme_custom()+
   theme(panel.grid.major.y = element_line(colour="Grey93"),
         plot.title=element_markdown())+
-  labs(title="Wage growth is accelerating in <span style='color:#008080;'>high earners</span> and stagnating in <span style='color:#CA562C;'>low earners</span>",
+  labs(title="Wage growth has slowed at the <span style='color:#008080;'>very top</span> and the <span style='color:#CA562C;'>bottom</span> of the pay distribution",
        subtitle="3-month rolling average monthly pay from PAYE data across the pay distribution, seasonally adjusted",
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
@@ -95,7 +95,7 @@ ggplot(annualdistdata %>% filter(Date>=as.Date("2020-01-01")),
 dev.off()
 
 #long-term cumulative
-longdistdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H102") %>% 
+longdistdata <- read_excel(temp, sheet="5. Pay distribution (UK)", range="A6:H103") %>% 
   gather(Percentile, Pay, c(2:8)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Percentile) %>% 
@@ -118,7 +118,7 @@ ggplot(longdistdata %>% filter(Date>as.Date("2014-08-01")),
 dev.off()
 
 #Mean pay data by industry
-inddata <- read_excel(temp, sheet="25. Mean pay (Industry)", range="A7:V105") %>% 
+inddata <- read_excel(temp, sheet="25. Mean pay (Industry)", range="A7:V106") %>% 
   gather(Industry, Pay, c(2:22)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(Industry) %>% 
@@ -218,7 +218,7 @@ ggplot()+
 dev.off()
 
 #Download NUTS3 region data
-NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX105") %>% 
+NUTS3data <- read_excel(temp, sheet="17. Mean pay (NUTS3)", range="A7:FX106") %>% 
   gather(NUTS3NM, Pay, c(2:180)) %>% 
   mutate(Date=as.Date(paste("1", Date), format="%d %B %Y")) %>% 
   group_by(NUTS3NM) %>% 
@@ -256,12 +256,12 @@ ggplot(paychangemap, aes(geometry=geometry, fill=Pay_Indexed-1))+
                          labels=label_percent(accuracy=1), name="Change in mean\npay since\nJan 2020")+
   theme_void()+
   theme(plot.title=element_text(face="bold", size=rel(2), hjust=0,
-                                 margin=margin(0,0,5.5,0)),
-         text=element_text(family="Lato"),
-         plot.subtitle=element_text(colour="Grey40", hjust=0, vjust=1),
-         plot.caption=element_text(colour="Grey40", hjust=1, vjust=1, size=rel(0.8)),
-         legend.text=element_text(colour="Grey40"),
-         legend.title=element_text(colour="Grey20"))+
+                                margin=margin(0,0,5.5,0)),
+        text=element_text(family="Lato"),
+        plot.subtitle=element_text(colour="Grey40", hjust=0, vjust=1),
+        plot.caption=element_text(colour="Grey40", hjust=1, vjust=1, size=rel(0.8)),
+        legend.text=element_text(colour="Grey40"),
+        legend.title=element_text(colour="Grey20"))+
   labs(title="Wages are rising fastest in the South East",
        subtitle="Change in mean monthly PAYE pay since January 2020 by NUTS3 region,\nseasonally adjusted",
        caption="Data from ONS | Plot by @VictimOfMaths")
