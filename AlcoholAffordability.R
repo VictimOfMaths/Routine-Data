@@ -86,8 +86,8 @@ agg_tiff("Outputs/DisposableIncomes.tiff", units="in", width=9, height=6, res=60
 Affordability %>% 
   select(c("time", "Overall", "Incomes")) %>% 
   gather(Measure, Value, c(2,3)) %>%
-  mutate(Measure=if_else(Measure=="Overall", "CPI inflation", "Disposable incomes"),
-         vjust=if_else(Measure=="CPI inflation", -0.5, 1.5)) %>% 
+  mutate(Measure=if_else(Measure=="Overall", "CPI prices", "Disposable incomes"),
+         vjust=if_else(Measure=="CPI prices", -0.5, 1.5)) %>% 
 ggplot(aes(x=time, y=Value, colour=Measure, label=Measure, vjust=vjust))+
   geom_textline(show.legend=FALSE, hjust=0.71, straight=TRUE,)+
   geom_hline(yintercept=100, colour="Grey80")+
@@ -96,7 +96,7 @@ ggplot(aes(x=time, y=Value, colour=Measure, label=Measure, vjust=vjust))+
   scale_colour_paletteer_d("ggthemes::Classic_Green_Orange_6")+
   theme_custom()+
   labs(title="The UK has less money to spend and everything costs more",
-       subtitle="Overall CPI inflation and disposable household income relative to Q1 1988. Data up to September 2022.",
+       subtitle="Overall CPI prices and disposable household income relative to Q1 1988. Data up to September 2022.",
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
 
@@ -112,11 +112,11 @@ Affordability %>%
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
                   xlim = c(as.Date("2023-01-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
   scale_x_date(name="", limits=c(as.Date("1988-01-01"), as.Date("2025-01-01")))+
-  scale_y_continuous(name="CPI inflation\n(1988 Q1 = 100)")+
+  scale_y_continuous(name="CPI prices\n(1988 Q1 = 100)")+
   scale_colour_paletteer_d("colorblindr::OkabeIto")+
   theme_custom()+
   labs(title="Alcohol prices are rising *much* slower than everything else",
-       subtitle="CPI inflation for alcohol and for all products combined. Data up to September 2022.",
+       subtitle="CPI prices for alcohol and for all products combined. Data up to September 2022.",
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
 
