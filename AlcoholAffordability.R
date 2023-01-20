@@ -11,6 +11,7 @@ library(ggrepel)
 library(extrafont)
 library(RcppRoll)
 library(geomtextpath)
+library(snakecase)
 
 options(scipen=99999999)
 
@@ -112,11 +113,11 @@ Affordability %>%
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
                   xlim = c(as.Date("2023-01-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
   scale_x_date(name="", limits=c(as.Date("1988-01-01"), as.Date("2025-01-01")))+
-  scale_y_continuous(name="CPI prices\n(1988 Q1 = 100)")+
+  scale_y_continuous(name="CPI inflation\n(1988 Q1 = 100)")+
   scale_colour_paletteer_d("colorblindr::OkabeIto")+
   theme_custom()+
   labs(title="Alcohol prices are rising *much* slower than everything else",
-       subtitle="CPI prices for alcohol and for all products combined. Data up to September 2022.",
+       subtitle="CPI inflation for alcohol and for all products combined. Data up to September 2022.",
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
 
@@ -255,4 +256,49 @@ ggplot(Summarydata_rebase %>% filter(Metric=="Affordability"), aes(x=time, y=Val
 
 dev.off()
 
+
+############################################################
+#Extract on/off trade inflation indices
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindices/current/mm23.csv"
+temp <- tempfile()
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+RPIdata <-read.csv(temp) %>% 
+  set_names(slice(., 1)) %>% 
+  slice_tail(., n=nrow(.)-1) %>% 
+  filter(str_length(CDID)>7) %>% 
+  select(CDID, DOBI, DOBJ, DOBL, DOBM) %>% 
+  set_names("date", "On-trade beer", "Off-trade beer", "On-trade wine & spirits", 
+            "Off-trade wine & spirits") %>% 
+  mutate(across(.cols=c(2:5), ~as.numeric(.x))) %>% 
+  filter(!is.na(`On-trade beer`)) %>% 
+  gather(Product, Index, c(2:5)) %>% 
+  mutate(date=as.Date(paste(to_upper_camel_case(date, sep_out=" "), "01"), "%Y %b %d"))
+
+ggplot(RPIdata, aes(x=date, y=Index, colour=Product))+
+  geom_line()+
+  scale_x_date(name="")+
+  scale_y_continuous(name="RPI index (1987=100)")+
+  scale_colour_paletteer_d("lisa::MarcChagall", name="")+
+  theme_custom()
+
+#Rebase to 2013
+agg_tiff("Outputs/RPIxChannel.tiff", units="in", width=8, height=6, res=600)
+RPIdata %>% 
+  group_by(Product) %>% 
+  mutate(Index=Index*100/Index[date==as.Date("2013-01-01")]) %>% 
+  filter(date>=as.Date("2013-01-01")) %>% 
+  ggplot(aes(x=date, y=Index, colour=Product))+
+  geom_rect(aes(xmin=as.Date("2022-01-01"), xmax=as.Date("2023-01-01"), ymin=85,
+            ymax=145), fill="grey90", colour="grey90")+
+  geom_hline(yintercept=100, colour="grey80")+
+  geom_line()+
+  scale_x_date(name="")+
+  scale_y_continuous(name="RPI index (2013=100)\n(log scale)", trans="log")+
+  scale_colour_paletteer_d("lisa::MarcChagall", name="")+
+  theme_custom()+
+  labs(title="Alcohol prices have risen faster in the on-trade in the past year",
+       subtitle="Retail Price Index data on the prices of on-trade (sold in pubs and bars) and off-trade (sold in shops) alcohol in the UK",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+dev.off()
 
