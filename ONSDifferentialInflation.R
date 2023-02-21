@@ -28,11 +28,11 @@ theme_custom <- function() {
 
 #Download inflation data from ONS
 temp <- tempfile()
-url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/cpiconsistentinflationrateestimatesforukhouseholdgroupsdemocraticweighting/julytooctober2022/cpidemocraticreferencetables2022q3.xlsx"
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/cpiconsistentinflationrateestimatesforukhouseholdgroupsdemocraticweighting/novembertodecember2022/cpidemocraticreferencetables2022q4.xlsx"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 
 #By equivalised income deciles
-deciles <- read_excel(temp, sheet="Table 3", range="B5:L206") %>%
+deciles <- read_excel(temp, sheet="Table 3", range="B5:L209") %>%
   gather(Decile, Inflation, c(2:11)) %>% 
   mutate(Period=as.Date(Period),
          Decile=as.factor(as.numeric(substr(Decile, 8,9))))
@@ -45,8 +45,8 @@ agg_tiff("Outputs/ONSInflationxDeciles.tiff", units="in", width=8, height=6, res
 ggplot(deciles, aes(x=Period, y=Inflation/100, colour=Decile))+
   geom_line()+
   geom_text_repel(data=decile_labels ,aes(label=labels),
-                  show.legend=FALSE, family="Lato", xlim=(c(as.Date("2022-09-01"), NA)), segment.color = NA)+
-  scale_x_date(limits=c(as.Date("2020-01-01"), as.Date("2023-02-01")), name="")+
+                  show.legend=FALSE, family="Lato", xlim=(c(as.Date("2022-12-01"), NA)), segment.color = NA)+
+  scale_x_date(limits=c(as.Date("2020-01-01"), as.Date("2023-06-01")), name="")+
   scale_y_continuous(name="12-month inflation rate", labels=label_percent(accuracy=1),
                      position="right")+
   scale_colour_paletteer_d("dichromat::BrowntoBlue_10")+
@@ -61,7 +61,7 @@ ggplot(deciles, aes(x=Period, y=Inflation/100, colour=Decile))+
 dev.off()
 
 #By housing tenure
-tenure <- read_excel(temp, sheet="Table 23", range="B5:E207") %>% 
+tenure <- read_excel(temp, sheet="Table 23", range="B5:E209") %>% 
   gather(Tenure, Inflation, c(2:4)) %>% 
   mutate(Period=as.Date(Period))
 
@@ -73,8 +73,8 @@ agg_tiff("Outputs/ONSInflationxTenure.tiff", units="in", width=8, height=6, res=
 ggplot(tenure, aes(x=Period, y=Inflation/100, colour=Tenure))+
   geom_line()+
   geom_text_repel(data=tenure_labels , aes(label=labels),
-                  show.legend=FALSE, family="Lato", xlim=(c(as.Date("2022-10-01"), NA)), segment.color = NA)+
-  scale_x_date(limits=c(as.Date("2020-01-01"), as.Date("2023-05-01")), name="")+
+                  show.legend=FALSE, family="Lato", xlim=(c(as.Date("2022-12-01"), NA)), segment.color = NA)+
+  scale_x_date(limits=c(as.Date("2020-01-01"), as.Date("2023-08-01")), name="")+
   scale_y_continuous(name="12-month inflation rate", labels=label_percent(accuracy=1),
                      position="right")+
   scale_colour_paletteer_d("tidyquant::tq_light")+
@@ -118,7 +118,7 @@ ggplot(decile_exp %>% filter(Date>as.Date("2015-01-01") & Decile %in% c(1,10)) %
   scale_fill_paletteer_d("ggthemes::Classic_Green_Orange_12")+
   facet_grid(~cat)+
   theme_custom()+
-  labs(title="The lowest income households are most at risk from big increases in energy prices",
+  labs(title="The lowest income households are more exposed to increases in fuel and food bills",
        subtitle="Proportion of household expenditure for the highest and lowest deciles of equivalised disposable household income by COICOP category\nData was last updated in February 2022, so does not reflect more recent price changes.",
        caption="Data from ONS | Plot by @VictimOfMaths")
 
@@ -172,7 +172,7 @@ ggplot(tenure_exp %>% filter(Date>as.Date("2018-01-01")), aes(x=Date, y=Share, c
 dev.off()
 
 #Children or not
-children <- read_excel(temp, sheet="Table 19", range="B5:D207") %>% 
+children <- read_excel(temp, sheet="Table 19", range="B5:D209") %>% 
   gather(Status, Inflation, c(2:3)) %>% 
   mutate(Period=as.Date(Period))
 
@@ -183,8 +183,8 @@ agg_tiff("Outputs/ONSInflationxTenure.tiff", units="in", width=8, height=6, res=
 ggplot(children, aes(x=Period, y=Inflation/100, colour=Status))+
   geom_line()+
   geom_text_repel(data=children_labels , aes(label=Status),
-                  show.legend=FALSE, family="Lato", xlim=(c(as.Date("2022-10-01"), NA)), segment.color = NA)+
-  scale_x_date(limits=c(as.Date("2020-01-01"), as.Date("2023-05-01")), name="")+
+                  show.legend=FALSE, family="Lato", xlim=(c(as.Date("2022-12-01"), NA)), segment.color = NA)+
+  scale_x_date(limits=c(as.Date("2020-01-01"), as.Date("2023-08-01")), name="")+
   scale_y_continuous(name="12-month inflation rate", labels=label_percent(accuracy=1),
                      position="right")+
   scale_colour_paletteer_d("tidyquant::tq_light")+
@@ -192,8 +192,8 @@ ggplot(children, aes(x=Period, y=Inflation/100, colour=Status))+
   theme(legend.position="none", axis.line.y=element_blank(), axis.ticks.y=element_blank(),
         panel.grid.major.y=element_line(colour="Grey90"),
         plot.title=element_markdown())+
-  labs(title="The cost of living crisis is hitting <span style='color:#18BC9C;'>subsidised renters</span> hardest",
-       subtitle="Annual percentage growth in CPIH inflation by household tenure",
+  labs(title="The cost of living crisis is hitting <span style='color:#E31A1C;'>households without children</span> hardest",
+       subtitle="Annual percentage growth in CPIH inflation by whether the household has children or not",
        caption="Data from ONS | Plot by @VictimOfMaths")
 
 dev.off()
