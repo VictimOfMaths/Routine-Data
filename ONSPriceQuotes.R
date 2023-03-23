@@ -34,6 +34,57 @@ comparators <- c(220107, 220318)
 #Glossary for datasets can be found here: https://www.ons.gov.uk/file?uri=%2feconomy%2finflationandpriceindices%2fdatasets%2fconsumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes%2fglossary/glossaryrevised.xls
 
 #Download ONS price quotes - credit to Peter Donaghy (@peterdonaghy) for bringing this data to my attention
+#February 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesfebruary2023/upload-pricequotes202302.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2302 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#January 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjanuary2023/upload-pricequotes202301.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2301 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#December 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesdecember2022/upload-pricequotes202212.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2212 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#November 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesnovember2022/upload-pricequotes202211.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2211 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#October 2022
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesoctober2022/upload-pricequotes202210.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2210 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+
 #September 2022
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesseptember2022/upload-pricequotes202209.csv"
@@ -1004,7 +1055,8 @@ data10q1 <- read_csv(file.path(temp2, "price_quote_2010_q1.csv")) %>%
 #while the item codes have remained the same
 
 #Get code to description lookup
-lookup <- bind_rows(data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
+lookup <- bind_rows(data2302, data2301, data2212, data2211, data2210,
+  data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
                     data2201, data2112, data2111, data2110, data2109,
                     data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                     data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
@@ -1025,7 +1077,8 @@ lookup <- bind_rows(data2209, data2208, data2207, data2206, data2205, data2204, 
   ungroup() %>% 
   select(-c(count, date))
 
-fulldata <- bind_rows(data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
+fulldata <- bind_rows(data2302, data2301, data2212, data2211, data2210,
+                      data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
                       data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                       data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
                       data2004, data2003, data2002, data2001, data1912, data1911, data1910, data1909,
@@ -1136,7 +1189,7 @@ regmeans <- fulldata %>%
   mutate(roll_meanprice=roll_mean(meanprice, n=6, align="center", fill=NA)) %>% 
   ungroup()
 
-agg_png("Outputs/ONSPriceQuotesLagerxReg.png", units="in", width=8, height=6, res=500)
+agg_tiff("Outputs/ONSPriceQuotesLagerxReg.tiff", units="in", width=8, height=6, res=500)
 ggplot(regmeans %>% filter(ITEM_DESC=="LAGER - PINT 3.4-4.2%"),
        aes(x=date, y=roll_meanprice, colour=region))+
   geom_line(show.legend=FALSE)+
@@ -1144,21 +1197,22 @@ ggplot(regmeans %>% filter(ITEM_DESC=="LAGER - PINT 3.4-4.2%"),
                                              date==max(date[!is.na(roll_meanprice)])),
                   aes(x=max(date[!is.na(roll_meanprice)]), y=roll_meanprice, label = region, 
                       colour=region),
-                  family = "Lato", direction = "y", xlim = c(as.Date("2022-04-01"), as.Date("2024-06-01")),
+                  family = "Lato", direction = "y", xlim = c(as.Date("2023-02-01"), as.Date("2025-06-01")),
                   hjust = 0, segment.color = NA, box.padding = .1, show.legend = FALSE, size=rel(2.5))+
-  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2024-06-01")),
+  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2025-06-01")),
                labels=c("", "2010", "2015", "2020", "", ""))+
   scale_y_continuous(name="Mean price observed", labels=dollar_format(prefix="£"), limits=c(0,NA))+
   scale_colour_manual(values=c("#0e3724", "#008c5c", "#33b983", "#0050ae", "#9b54f3", "#bf8cfc",
-                               "#551153", "#ac0000", "#c85b00", "#f98517", "Grey10", "Grey70"))+
+                               "#551153", "#ac0000", "#c85b00", "#f98517", "grey10", "grey70"))+
   theme_custom()+
   theme(plot.title=element_markdown())+
   labs(title="The price of a pint is highest in <span style='color:#33b983;'>London</span> and <span style='color:#bf8cfc;'>Northern Ireland",
        subtitle="Average observed price for a pint of lager (3.4-4.2% ABV), rolling 5-month average\n",
        caption="Data from ONS price quotes | Plot by @VictimOfMaths")
+
 dev.off()
 
-agg_png("Outputs/ONSPriceQuotesBitterxReg.png", units="in", width=8, height=6, res=500)
+agg_tiff("Outputs/ONSPriceQuotesBitterxReg.tiff", units="in", width=8, height=6, res=500)
 ggplot(regmeans %>% filter(ITEM_DESC=="DRAUGHT BITTER (PER PINT)"),
        aes(x=date, y=roll_meanprice, colour=region))+
   geom_line(show.legend=FALSE)+
@@ -1166,9 +1220,9 @@ ggplot(regmeans %>% filter(ITEM_DESC=="DRAUGHT BITTER (PER PINT)"),
                                              date==max(date[!is.na(roll_meanprice)])),
                   aes(x=max(date[!is.na(roll_meanprice)]), y=roll_meanprice, label = region, 
                       colour=region),
-                  family = "Lato", direction = "y", xlim = c(as.Date("2022-04-01"), as.Date("2024-06-01")),
+                  family = "Lato", direction = "y", xlim = c(as.Date("2023-02-01"), as.Date("2025-06-01")),
                   hjust = 0, segment.color = NA, box.padding = .1, show.legend = FALSE, size=rel(2.5))+
-  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2024-06-01")),
+  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2025-06-01")),
                labels=c("", "2010", "2015", "2020", "", ""))+
   scale_y_continuous(name="Mean price observed", labels=dollar_format(prefix="£"), limits=c(0,NA))+
   scale_colour_manual(values=c("#0e3724", "#008c5c", "#33b983", "#0050ae", "#9b54f3", "#bf8cfc",
@@ -1178,9 +1232,10 @@ ggplot(regmeans %>% filter(ITEM_DESC=="DRAUGHT BITTER (PER PINT)"),
   labs(title="The price of a pint is highest in <span style='color:#33b983;'>London</span> and <span style='color:#bf8cfc;'>Northern Ireland",
        subtitle="Average observed price for a pint of bitter, rolling 5-month average\n",
        caption="Data from ONS price quotes | Plot by @VictimOfMaths")
+
 dev.off()
 
-agg_png("Outputs/ONSPriceQuotesPremLagerxReg.png", units="in", width=8, height=6, res=500)
+agg_tiff("Outputs/ONSPriceQuotesPremLagerxReg.tiff", units="in", width=8, height=6, res=500)
 ggplot(regmeans %>% filter(ITEM_DESC=="PREMIUM LAGER - PINT 4.3-7.5%"),
        aes(x=date, y=roll_meanprice, colour=region))+
   geom_line(show.legend=FALSE)+
@@ -1188,9 +1243,9 @@ ggplot(regmeans %>% filter(ITEM_DESC=="PREMIUM LAGER - PINT 4.3-7.5%"),
                                              date==max(date[!is.na(roll_meanprice)])),
                   aes(x=max(date[!is.na(roll_meanprice)]), y=roll_meanprice, label = region, 
                       colour=region),
-                  family = "Lato", direction = "y", xlim = c(as.Date("2022-04-01"), as.Date("2024-06-01")),
+                  family = "Lato", direction = "y", xlim = c(as.Date("2023-02-01"), as.Date("2025-06-01")),
                   hjust = 0, segment.color = NA, box.padding = .1, show.legend = FALSE, size=rel(2.5))+
-  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2024-06-01")),
+  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2025-06-01")),
                labels=c("", "2010", "2015", "2020", "", ""))+
   scale_y_continuous(name="Mean price observed", labels=dollar_format(prefix="£"), limits=c(0,NA))+
   scale_colour_manual(values=c("#0e3724", "#008c5c", "#33b983", "#0050ae", "#9b54f3", "#bf8cfc",
@@ -1230,9 +1285,9 @@ prodmeans %>%
   ggplot(aes(x=date, y=roll_meanprice, colour=ITEM_DESC))+
   geom_line(show.legend=FALSE)+
   geom_text_repel(data=labels1, aes(x=date, y=roll_meanprice, label=label, colour=ITEM_DESC), 
-                  family = "Lato", direction = "y", xlim = c(as.Date("2022-07-10"), NA),
+                  family = "Lato", direction = "y", xlim = c(as.Date("2023-02-10"), NA),
                   hjust = 0, segment.color = NA, box.padding = .3, show.legend = FALSE)+
-  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-06-01")),
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2025-06-01")),
                breaks=as.Date(c("2010-01-01", "2015-01-01", "2020-01-01")),
                labels=c("2010", "2015", "2020"))+
   scale_y_continuous(name="Average price per bottle", labels=label_dollar(prefix="£"))+
@@ -1255,8 +1310,8 @@ prodmeans %>%
   filter(ITEM_DESC %in% c("CIDER-PER PINT OR 500-568ML", "CIDER 4.5%-5.5% ABV PINT/BOTTL", 
                           "DRAUGHT BITTER (PER PINT)",
                           "LAGER - PINT 3.4-4.2%", "PREMIUM LAGER - PINT 4.3-7.5%")) %>% 
-         mutate(ITEM_DESC=if_else(ITEM_DESC=="CIDER-PER PINT OR 500-568ML",
-                                  "CIDER 4.5%-5.5% ABV PINT/BOTTL", ITEM_DESC)) %>% 
+  mutate(ITEM_DESC=if_else(ITEM_DESC=="CIDER-PER PINT OR 500-568ML",
+                           "CIDER 4.5%-5.5% ABV PINT/BOTTL", ITEM_DESC)) %>% 
   ggplot(aes(x=date, y=roll_meanprice, colour=ITEM_DESC))+
   geom_line(show.legend=FALSE)+
   geom_text_repel(data=labels2, aes(x=date, y=roll_meanprice, label=label, colour=ITEM_DESC), 
@@ -1334,4 +1389,3 @@ prodmeans %>%
        caption="Data from ONS' Price Quotes | Plot from @VictimOfMaths")
 
 dev.off()
-
