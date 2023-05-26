@@ -81,7 +81,7 @@ data <- merge(dates, rawbeer, all.x=TRUE) %>%
 
 #Bring in RPI data
 temp <- tempfile()
-url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=01&toYear=2023&frequency=months"
+url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=03&toYear=2023&frequency=months"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 
 RPIdata <- read.csv(temp)[-c(1:5),] 
@@ -232,18 +232,22 @@ Channeldata %>% filter(Channel!="Overall") %>%
   geom_text_repel(data=Channeldata %>% filter(Channel!="Overall" & date==max(date)),
                   aes(label = labels),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2023-03-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(as.Date("2000-01-01"), as.Date("2029-12-01")))+
+                  xlim = c(as.Date("2023-06-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(as.Date("2000-01-01"), as.Date("2030-12-01")))+
   scale_y_continuous(name="Relative price compared to January 2000\n(log scale)",
                      trans="log10")+
   scale_colour_manual(values=c("#F7AA14", "#7030a0"))+
   theme_custom()+
-  theme(panel.grid.major.y=element_line(colour="Grey90"))+
+  theme(panel.grid.major.y=element_line(colour="grey90"))+
   labs(title="The price gap between pubs and supermarkets keeps on widening",
        subtitle="Product-specific inflation indices (RPI) for beer and wines/spirits, in the on-trade (pubs and bars) and off-trade (shops)",
        caption="Data from ONS | Plot by @VictimOfMaths")+
-  annotate("text", x=as.Date("2019-12-31"), y=1.65, colour="black",
-           label="All Item RPI", family="Lato", fontface="bold")
+  annotate("text", x=as.Date("2019-12-31"), y=1.64, colour="black",
+           label="All Item RPI", family="Lato", fontface="bold")+
+  annotate("text", x=as.Date("2001-01-01"), y=2.07, colour="grey80",
+           label="Prices double Jan 2000 level", family="Lato", hjust=0)+
+  annotate("text", x=as.Date("2001-01-01"), y=0.515, colour="grey80",
+           label="Prices half Jan 2000 level", family="Lato", hjust=0)
   
 dev.off()  
   
@@ -300,7 +304,7 @@ Affordability %>%
   scale_colour_paletteer_d("colorblindr::OkabeIto")+
   theme_custom()
 
-agg_png("Outputs/AlcoholAffordability.png", units="in", width=9, height=6, res=600)
+agg_tiff("Outputs/AlcoholAffordability.tiff", units="in", width=9, height=6, res=600)
 ggplot(Summarydata %>% filter(Metric=="Affordability"), aes(x=time, y=Value, colour=Product,
                                                             linetype=Product))+
   geom_hline(yintercept=100, colour="Grey70")+
@@ -315,6 +319,6 @@ ggplot(Summarydata %>% filter(Metric=="Affordability"), aes(x=time, y=Value, col
   theme(panel.grid.major.y=element_line(colour="Grey90"))+
   labs(title="Alcohol is more affordable than ever",
        subtitle="Alcohol affordability in the UK since 1988 (higher = more affordable). Affordability is calculated as\nthe ratio of household disposable income (adjusted) to the relative price of alcohol vs. overall CPI inflation",
-       caption="Data from ONS | Plot by Colin Angus")
+       caption="Data from ONS | Plot by @VictimOfMaths")
 
 dev.off()
