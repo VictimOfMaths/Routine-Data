@@ -317,9 +317,9 @@ ggplot(Summarydata %>% filter(Metric=="Affordability"), aes(x=time, y=Value, col
                         labels=c("All alcohol", "Beer", "Spirits", "Wine"), name="")+
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey90"))+
-  labs(title="Alcohol is more affordable than ever",
+  labs(title="The affordability of alcohol fell slightly in early 2023, but remains high",
        subtitle="Alcohol affordability in the UK since 1988 (higher = more affordable). Affordability is calculated as\nthe ratio of household disposable income (adjusted) to the relative price of alcohol vs. overall CPI inflation",
-       caption="Data from ONS | Plot by @VictimOfMaths")
+       caption="Data from the ONS")
 
 dev.off()
 
