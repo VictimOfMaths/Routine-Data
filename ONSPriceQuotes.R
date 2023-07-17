@@ -17,6 +17,7 @@ theme_custom <- function() {
   theme_classic() %+replace%
     theme(plot.title.position="plot", plot.caption.position="plot",
           strip.background=element_blank(), strip.text=element_text(face="bold", size=rel(1)),
+          strip.clip="off",
           plot.title=element_text(face="bold", size=rel(1.5), hjust=0,
                                   margin=margin(0,0,5.5,0)),
           text=element_text(family="Lato"),
@@ -34,6 +35,37 @@ comparators <- c(220107, 220318)
 #Glossary for datasets can be found here: https://www.ons.gov.uk/file?uri=%2feconomy%2finflationandpriceindices%2fdatasets%2fconsumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes%2fglossary/glossaryrevised.xls
 
 #Download ONS price quotes - credit to Peter Donaghy (@peterdonaghy) for bringing this data to my attention
+#May 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesmay2023/upload-pricequotes202305.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2305 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#April 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesapril2023/upload-pricequotes202304.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2304 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#March 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesmarch2023/upload-pricequotes202303.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2303 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+
 #February 2023
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesfebruary2023/upload-pricequotes202302.csv"
@@ -1055,8 +1087,8 @@ data10q1 <- read_csv(file.path(temp2, "price_quote_2010_q1.csv")) %>%
 #while the item codes have remained the same
 
 #Get code to description lookup
-lookup <- bind_rows(data2302, data2301, data2212, data2211, data2210,
-  data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
+lookup <- bind_rows(data2305, data2304, data2303, data2302, data2301, data2212, data2211, data2210,
+                    data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
                     data2201, data2112, data2111, data2110, data2109,
                     data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                     data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
@@ -1077,8 +1109,9 @@ lookup <- bind_rows(data2302, data2301, data2212, data2211, data2210,
   ungroup() %>% 
   select(-c(count, date))
 
-fulldata <- bind_rows(data2302, data2301, data2212, data2211, data2210,
-                      data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
+fulldata <- bind_rows(data2305, data2304, data2303, data2302, data2301, data2212, data2211, data2210,
+                      data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
+                      data2201, data2112, data2111, data2110, data2109,
                       data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                       data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
                       data2004, data2003, data2002, data2001, data1912, data1911, data1910, data1909,
@@ -1389,3 +1422,44 @@ prodmeans %>%
        caption="Data from ONS' Price Quotes | Plot from @VictimOfMaths")
 
 dev.off()
+
+pricedists <- fulldata %>% 
+  mutate(Country=case_when(region=="Scotland" ~ "Scotland",
+                           region=="Wales" ~ "Wales",
+                           region=="Northern Ireland" ~ "Northern Ireland",
+                           TRUE ~ "England"))
+
+agg_tiff("Outputs/ONSPriceQuotesPintRidgeplot.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC=="LAGER - PINT 3.4-4.2%" & 
+                        Country=="England") %>% 
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = after_stat(x)))+
+  geom_density_ridges_gradient(rel_min_height = 0.01, show.legend=FALSE)+
+  scale_x_continuous(name="Price per pint", labels=label_dollar(prefix="£"))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_c("scico::lajolla")+
+  theme_custom()+
+  theme(panel.grid.major.x=element_line(colour="grey95"))+
+  labs(title="There is much more variation in the price of a pint these days",
+       subtitle="Distribution of prices of a pint of 3.4-4.2% lager in pubs in England\n",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
+
+agg_tiff("Outputs/ONSPriceQuotesPintStdPrmRidgeplot.tiff", units="in", width=8, height=7, res=800)
+pricedists %>% filter(ITEM_DESC %in% c("LAGER - PINT 3.4-4.2%", "PREMIUM LAGER - PINT 4.3-7.5%") & 
+                        Country=="England") %>% 
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill=ITEM_DESC))+
+  geom_density_ridges(rel_min_height = 0.01, alpha=0.6)+
+  scale_x_continuous(name="Price per pint", labels=label_dollar(prefix="£"))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_d("colorblindr::OkabeIto", name="", 
+                         labels=c("Standard lager", "Premium lager"))+
+  theme_custom()+
+  theme(legend.position="none")+
+  theme(panel.grid.major.x=element_line(colour="grey95"),
+        plot.title=element_markdown())+
+  labs(title="Prices have changed for both <span style='color:#E69F00'>standard</span> and <span style='color:#56B4E9'>premium</span> lager",
+       subtitle="Distribution of prices of a pint of standard (3.4-4.2%) or premium (4.3-7.5%) lager in pubs in England\n",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
+
+
