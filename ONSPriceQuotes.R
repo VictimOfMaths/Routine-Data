@@ -1483,3 +1483,38 @@ pricedists %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL",
        caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
 dev.off()
 
+
+agg_tiff("Outputs/ONSPriceQuotesWineRegMeans.tiff", units="in", width=7, height=5, res=800)
+pricedists %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL",
+                                       "RED WINE- NEW WORLD 75CL",
+                                       "RED WINE 75CL BOTTLE",
+                                       "ROSE WINE-75CL BOTTLE",
+                                       "WHITE WINE- EUROPEAN 75CL",
+                                       "WHITE WINE- NEW WORLD 75CL") & 
+                        Country=="England") %>% 
+  group_by(region, date) %>% 
+  summarise(Meanprice=mean(PRICE), .groups="drop") %>% 
+  group_by(region) %>% 
+  mutate(rollmean=roll_mean(Meanprice, n=6, align="center", fill=NA)) %>% 
+  ggplot(aes(x=date, y=rollmean, colour=region))+
+  geom_line()+
+  geom_text_repel(data=. %>% filter(date==max(date[!is.na(rollmean)])),
+                  aes(x=max(date[!is.na(rollmean)]), y=rollmean, label = region, 
+                      colour=region),
+                  family = "Lato", direction = "y", xlim = c(as.Date("2023-05-01"), as.Date("2027-01-01")),
+                  hjust = 0, segment.color = NA, box.padding = .1, show.legend = FALSE, size=rel(2.5))+
+  scale_x_date(limits=as.Date(c("2010-01-01", "2027-01-01")), name="",
+               breaks=as.Date(c("2010-01-01", "2014-01-01", "2018-01-01",
+                                "2022-01-01")),
+               labels=c("2010", "2014", "2018", "2022"))+
+  scale_y_continuous(name="Mean price per bottle", labels=label_dollar(prefix="£"))+
+  scale_colour_paletteer_d("LaCroixColoR::paired")+
+  theme_custom()+
+  theme(panel.grid.major.y=element_line(colour="grey95"),
+        legend.position="off")+
+  labs(title="London has expensive taste in wine, East Anglia, not so much",
+       subtitle="Rolling 6-month average price paid for a bottle of wine in shops in English regions",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+
+dev.off()
+
