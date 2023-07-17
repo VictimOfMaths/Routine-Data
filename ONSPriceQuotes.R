@@ -1462,4 +1462,24 @@ pricedists %>% filter(ITEM_DESC %in% c("LAGER - PINT 3.4-4.2%", "PREMIUM LAGER -
        caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
 dev.off()
 
+agg_tiff("Outputs/ONSPriceQuotesWineRidgeplot.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL",
+                                       "RED WINE- NEW WORLD 75CL",
+                                       "RED WINE 75CL BOTTLE",
+                                       "ROSE WINE-75CL BOTTLE",
+                                       "WHITE WINE- EUROPEAN 75CL",
+                                       "WHITE WINE- NEW WORLD 75CL") & 
+                        Country=="England") %>% 
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = after_stat(x)))+
+  geom_density_ridges_gradient(rel_min_height = 0.01, show.legend=FALSE)+
+  scale_x_continuous(name="Price per bottle", labels=label_dollar(prefix="£"),
+                     limits=c(2.5,15), breaks=c(3,4,5,6,7,8,9,10,11,12,13,14,15))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_c("pals::ocean.dense")+
+  theme_custom()+
+  theme(panel.grid.major.x=element_line(colour="grey95"))+
+  labs(title="The £7 bottle of wine is the new £5 bottle",
+       subtitle="Distribution of prices of a bottle of wine in shops in England\n",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
 
