@@ -31,23 +31,23 @@ theme_custom <- function() {
 
 #Historic data compiled from multiple sources including historic duty bulletins with assistance
 #from Charles Barry. Any errors are mine and not his.
-rawbeer <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Beer", range="A1:B47") %>% 
+rawbeer <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Beer", range="A1:B48") %>% 
   mutate(Date=as.Date(Date)) %>% 
   set_names("Date", "Beer.Rate") %>% 
   mutate(Beer.Rate=if_else(Date<as.Date("1992-01-01"), Beer.Rate/4, Beer.Rate))
-rawcider <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Cider", range="A1:B46")%>% 
+rawcider <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Cider", range="A1:B47")%>% 
   mutate(Date=as.Date(Date))%>% 
   set_names("Date", "Cider.Rate")
-rawwine<- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Wine & Made-Wine", range="A1:I46")%>% 
+rawwine<- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Wine & Made-Wine", range="A1:I47")%>% 
   select(c(1,5,9)) %>% 
   mutate(Date=as.Date(Date))%>% 
   set_names("Date", "StillWine.Rate", "SparklingWine.Rate")
-rawspirits <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Spirits", range="A1:B78")%>% 
+rawspirits <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Spirits", range="A1:B79")%>% 
   mutate(Date=as.Date(Date))%>% 
   set_names("Date", "Spirit.Rate")
 
 #Set up date framework
-dates <- data.frame(Date=seq.Date(from=as.Date("1950-04-19"), to=as.Date("2023-05-31"),
+dates <- data.frame(Date=seq.Date(from=as.Date("1950-04-19"), to=as.Date("2023-09-21"),
                                   by="days"))
 
 WineABV <- 0.125
@@ -71,9 +71,9 @@ data <- merge(dates, rawbeer, all.x=TRUE) %>%
   mutate(Date=as.Date(paste0(year, "-", month, "-01"))) %>% 
   #Convert to rates per unit of alcohol
   mutate(Beer.PPU=Beer.Rate/100,
-         Cider.PPU=Cider.Rate/(CiderABV*10000),
-         StillWine.PPU=StillWine.Rate/(WineABV*10000),
-         SparklingWine.PPU=SparklingWine.Rate/(WineABV*10000),
+         Cider.PPU=if_else(Date>=as.Date("2023-08-01"), Cider.Rate/100, Cider.Rate/(CiderABV*10000)),
+         StillWine.PPU=if_else(Date>=as.Date("2023-08-01"), StillWine.Rate/100, StillWine.Rate/(WineABV*10000)),
+         SparklingWine.PPU=if_else(Date>=as.Date("2023-08-01"), SparklingWine.Rate/100, SparklingWine.Rate/(WineABV*10000)),
          Spirit.PPU=Spirit.Rate/100) %>% 
   select(-c(1,2)) %>% 
   #Reshape data
@@ -81,7 +81,7 @@ data <- merge(dates, rawbeer, all.x=TRUE) %>%
 
 #Bring in RPI data
 temp <- tempfile()
-url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=05&toYear=2023&frequency=months"
+url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=08&toYear=2023&frequency=months"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 
 RPIdata <- read.csv(temp)[-c(1:5),] 
@@ -376,8 +376,8 @@ ggplot(CPIdata %>% filter(date>=as.Date("2021-01-01") &
   geom_text_repel(data=. %>% filter(date==max(date) & Product!="Overall"),
                   aes(label = Product), size=3,
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.3, hjust=0,
-                  xlim = c(as.Date("2023-05-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(NA_Date_, as.Date("2023-10-01")))+
+                  xlim = c(as.Date("2023-06-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2023-11-01")))+
   scale_y_continuous(trans="log", name="CPI inflation since January 2021", 
                      breaks=c(1, 1.2, 1.4), labels=c("0%", "+20%", "+40%"))+
   scale_colour_manual(values=c("#EF7C12","#FC6882","#54BCD1", "#F4B95A", "#009F3F", "#8FDA04", 
