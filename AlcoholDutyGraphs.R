@@ -18,6 +18,7 @@ theme_custom <- function() {
   theme_classic() %+replace%
     theme(plot.title.position="plot", plot.caption.position="plot",
           strip.background=element_blank(), strip.text=element_text(face="bold", size=rel(1)),
+          strip.clip="off",
           plot.title=element_text(face="bold", size=rel(1.5), hjust=0,
                                   margin=margin(0,0,5.5,0)),
           text=element_text(family="Lato"),
@@ -47,7 +48,7 @@ rawspirits <- read_excel("Data/alcohol duty rates time series.xlsx", sheet="Spir
   set_names("Date", "Spirit.Rate")
 
 #Set up date framework
-dates <- data.frame(Date=seq.Date(from=as.Date("1950-04-19"), to=as.Date("2023-09-21"),
+dates <- data.frame(Date=seq.Date(from=as.Date("1950-04-19"), to=as.Date("2023-10-01"),
                                   by="days"))
 
 WineABV <- 0.125
@@ -81,7 +82,7 @@ data <- merge(dates, rawbeer, all.x=TRUE) %>%
 
 #Bring in RPI data
 temp <- tempfile()
-url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=08&toYear=2023&frequency=months"
+url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=10&toYear=2023&frequency=months"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 
 RPIdata <- read.csv(temp)[-c(1:5),] 
@@ -377,7 +378,7 @@ ggplot(CPIdata %>% filter(date>=as.Date("2021-01-01") &
                   aes(label = Product), size=3,
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.3, hjust=0,
                   xlim = c(as.Date("2023-06-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(NA_Date_, as.Date("2023-11-01")))+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-03-01")))+
   scale_y_continuous(trans="log", name="CPI inflation since January 2021", 
                      breaks=c(1, 1.2, 1.4), labels=c("0%", "+20%", "+40%"))+
   scale_colour_manual(values=c("#EF7C12","#FC6882","#54BCD1", "#F4B95A", "#009F3F", "#8FDA04", 
@@ -388,4 +389,5 @@ ggplot(CPIdata %>% filter(date>=as.Date("2021-01-01") &
        caption="Data from ONS | Plot by @VictimOfMaths")+
   theme(panel.grid.major.y=element_line(colour="grey95"))
 dev.off()
+
 
