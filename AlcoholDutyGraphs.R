@@ -82,7 +82,7 @@ data <- merge(dates, rawbeer, all.x=TRUE) %>%
 
 #Bring in RPI data
 temp <- tempfile()
-url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=10&toYear=2023&frequency=months"
+url <- "https://www.ons.gov.uk/generator?format=csv&uri=/economy/inflationandpriceindices/timeseries/czeq/mm23&series=&fromMonth=01&fromYear=1950&toMonth=11&toYear=2023&frequency=months"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 
 RPIdata <- read.csv(temp)[-c(1:5),] 
@@ -115,12 +115,13 @@ ggplot(data %>% filter(metric=="PPU" & Date>=as.Date("1979-01-01")))+
   geom_text_repel(data=data %>% filter(metric=="PPU" & Date==max(Date)),
                   aes(x=Date, y=values, color = drink, label = labels),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2023-04-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+                  xlim = c(as.Date("2023-12-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey90"), plot.margin = unit(c(1,1,1,1), "lines"))+
   labs(title="Alcohol duty rates (in cash terms) are as high as they've ever been",
        subtitle="Mean alcohol duty payable per unit of alcohol in before adjusting for inflation",
        caption="Data from HMRC, IFS, BBPA & HMT | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/HMRCDutyRateLongReal.tiff", units="in", width=8, height=6, res=600)
@@ -136,9 +137,10 @@ ggplot(data %>% filter(metric=="PPU" & Date>=as.Date("1979-01-01")))+
                   xlim = c(as.Date("2023-04-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey90"), plot.margin = unit(c(1,1,1,1), "lines"))+
-  labs(title="Alcohol duty rates (in real terms) are at their lowest in 40+ years",
-       subtitle="Mean alcohol duty payable per unit of alcohol in the UK, adjusted to May 2023 prices",
+  labs(title="Alcohol duty rates (in real terms) remain low by historical standards",
+       subtitle="Mean alcohol duty payable per unit of alcohol in the UK, adjusted to October 2023 prices",
        caption="Data from HMRC, IFS, BBPA & HMT | Plot by Colin Angus")
+
 dev.off()
 
 budgets <- data %>% 
@@ -233,8 +235,8 @@ Channeldata %>% filter(Channel!="Overall") %>%
   geom_text_repel(data=Channeldata %>% filter(Channel!="Overall" & date==max(date)),
                   aes(label = labels),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2023-06-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(as.Date("2000-01-01"), as.Date("2030-12-01")))+
+                  xlim = c(as.Date("2023-10-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(as.Date("2000-01-01"), as.Date("2032-12-01")))+
   scale_y_continuous(name="Relative price compared to January 2000\n(log scale)",
                      trans="log10")+
   scale_colour_manual(values=c("#F7AA14", "#7030a0"))+
@@ -250,6 +252,38 @@ Channeldata %>% filter(Channel!="Overall") %>%
   annotate("text", x=as.Date("2001-01-01"), y=0.515, colour="grey80",
            label="Prices half Jan 2000 level", family="Lato", hjust=0)
   
+dev.off()  
+
+########################
+#January 2021 rebased version
+Channeldata_2021 <- Channeldata %>% 
+  group_by(Product, Channel) %>% 
+  mutate(RPI_2021=RPI/RPI[date==as.Date("2021-01-01")]) %>% 
+  ungroup()
+
+agg_tiff("Outputs/AlcoholRPIxProductxChannel2021onwards.tiff", units="in", width=8, height=6, res=600)
+Channeldata_2021 %>% filter(Channel!="Overall" & date>=as.Date("2021-01-01")) %>% 
+  ggplot(aes(x=date, y=RPI_2021, colour=Product))+
+  geom_line(aes(linetype=Channel), show.legend=FALSE)+
+  geom_line(data=Channeldata_2021 %>% filter(Product=="AllItems" & date>=as.Date("2021-01-01")), colour="black",
+            linetype=2)+
+  geom_text_repel(data=Channeldata_2021 %>% filter(Channel!="Overall" & date==max(date)),
+                  aes(label = labels),
+                  family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
+                  xlim = c(as.Date("2023-11-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(as.Date("2021-01-01"), as.Date("2025-01-01")))+
+  scale_y_continuous(name="Relative price compared to January 2000\n(log scale)",
+                     trans="log10", breaks=c(1,1.1,1.2,1.3),
+                     labels=c("No change", "+10%", "+20%", "30%"))+
+  scale_colour_manual(values=c("#F7AA14", "#7030a0"))+
+  theme_custom()+
+  theme(panel.grid.major.y=element_line(colour="grey90"))+
+  labs(title="Alcohol prices in both pubs and shops have risen below inflation",
+       subtitle="Product-specific inflation indices (RPI) for beer and wines/spirits, in the on-trade (pubs and bars) and off-trade (shops)\n",
+       caption="Data from ONS | Plot by @VictimOfMaths")+
+  annotate("text", x=as.Date("2022-09-10"), y=1.23, colour="black",
+           label="All Item RPI", family="Lato", fontface="bold")
+
 dev.off()  
   
   
@@ -377,8 +411,8 @@ ggplot(CPIdata %>% filter(date>=as.Date("2021-01-01") &
   geom_text_repel(data=. %>% filter(date==max(date) & Product!="Overall"),
                   aes(label = Product), size=3,
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.3, hjust=0,
-                  xlim = c(as.Date("2023-06-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-03-01")))+
+                  xlim = c(as.Date("2023-11-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-06-01")))+
   scale_y_continuous(trans="log", name="CPI inflation since January 2021", 
                      breaks=c(1, 1.2, 1.4), labels=c("0%", "+20%", "+40%"))+
   scale_colour_manual(values=c("#EF7C12","#FC6882","#54BCD1", "#F4B95A", "#009F3F", "#8FDA04", 
@@ -387,7 +421,14 @@ ggplot(CPIdata %>% filter(date>=as.Date("2021-01-01") &
   labs(title="Prices of alcohol have risen much slower than other food and drink items",
        subtitle="UK CPI inflation for food and drink items since January 2021. The dashed black line represents overall inflation",
        caption="Data from ONS | Plot by @VictimOfMaths")+
-  theme(panel.grid.major.y=element_line(colour="grey95"))
+  theme(panel.grid.major.y=element_line(colour="grey95"),
+        axis.line.x=element_blank())
 dev.off()
+
+test <- CPIdata %>% 
+  group_by(Product) %>% 
+  mutate(relchange=(CPI-lag(CPI, 1))/lag(CPI,1)) %>% 
+  ungroup()
+
 
 
