@@ -30,11 +30,132 @@ theme_custom <- function() {
 }
 
 #Create list of non-alcohol products to include
-comparators <- c(220107, 220318)
+comparators <- c(220107, 220318, 210102, 220305, 640244)
 
 #Glossary for datasets can be found here: https://www.ons.gov.uk/file?uri=%2feconomy%2finflationandpriceindices%2fdatasets%2fconsumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes%2fglossary/glossaryrevised.xls
+#Actual data here: https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes
 
 #Download ONS price quotes - credit to Peter Donaghy (@peterdonaghy) for bringing this data to my attention
+#May 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesmay2024/upload-pricequotes202405.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2405 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#April 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesapril2024/upload-pricequotes202404.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2404 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#March 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesmarch2024/upload-pricequotes202403.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2403 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#February 2043
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesfebruary2024/upload-pricequotes202402.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2402 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#January 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjanuary2024/upload-pricequotes202401.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2401 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#December 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesdecember2023/upload-pricequotes202312.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2312 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#November 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesnovember2023/upload-pricequotes202311.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2311 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#October 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesoctober2023/upload-pricequotes202310.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2310 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#September 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesseptember2023/upload-pricequotes202309.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2309 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#August 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesaugust2023/upload-pricequotes202308.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2308 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#July 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjuly2023/upload-pricequotes202307.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2307 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#June 2023
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjune2023/upload-pricequotes202306.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2306 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
 #May 2023
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesmay2023/upload-pricequotes202305.csv"
@@ -167,7 +288,6 @@ data2205 <- read_csv(temp) %>%
            VALIDITY %in% c(3,4)) %>% 
   mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
 
-################
 #April 2022
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=%2feconomy%2finflationandpriceindices%2fdatasets%2fconsumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes%2fpricequotesapril2022/upload-pricequotes202204.csv"
@@ -1087,9 +1207,10 @@ data10q1 <- read_csv(file.path(temp2, "price_quote_2010_q1.csv")) %>%
 #while the item codes have remained the same
 
 #Get code to description lookup
-lookup <- bind_rows(data2305, data2304, data2303, data2302, data2301, data2212, data2211, data2210,
-                    data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
-                    data2201, data2112, data2111, data2110, data2109,
+lookup <- bind_rows(data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
+                    data2309, data2308, data2307, data2306, data2305, data2304, data2303, data2302, 
+                    data2301, data2212, data2211, data2210, data2209, data2208, data2207, data2206, 
+                    data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
                     data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                     data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
                     data2004, data2003, data2002, data2001, data1912, data1911, data1910, data1909,
@@ -1109,9 +1230,10 @@ lookup <- bind_rows(data2305, data2304, data2303, data2302, data2301, data2212, 
   ungroup() %>% 
   select(-c(count, date))
 
-fulldata <- bind_rows(data2305, data2304, data2303, data2302, data2301, data2212, data2211, data2210,
-                      data2209, data2208, data2207, data2206, data2205, data2204, data2203, data2202, 
-                      data2201, data2112, data2111, data2110, data2109,
+fulldata <- bind_rows(data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
+                      data2309, data2308, data2307, data2306, data2305, data2304, data2303, data2302, 
+                      data2301, data2212, data2211, data2210, data2209, data2208, data2207, data2206, 
+                      data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
                       data2108, data2107, data2106, data2105, data2104, data2103, data2102, data2101,
                       data2012, data2011, data2010, data2009, data2008, data2007, data2006, data2005,
                       data2004, data2003, data2002, data2001, data1912, data1911, data1910, data1909,
@@ -1202,7 +1324,7 @@ fulldata %>%
   group_by(ITEM_DESC, date) %>% 
   summarise(count=n()) %>% 
   ungroup() %>% 
-  filter(!ITEM_DESC %in% c("INDIAN TAKEAWAY")) %>% 
+  #filter(!ITEM_DESC %in% c("INDIAN TAKEAWAY")) %>% 
   ggplot(aes(x=date, y=fct_rev(ITEM_DESC), fill=count))+
   geom_tile()+
   scale_fill_paletteer_c("viridis::mako", direction=-1, limits=c(0,NA), name="Number of\nobservations")+
@@ -1225,20 +1347,21 @@ regmeans <- fulldata %>%
 agg_tiff("Outputs/ONSPriceQuotesLagerxReg.tiff", units="in", width=8, height=6, res=500)
 ggplot(regmeans %>% filter(ITEM_DESC=="LAGER - PINT 3.4-4.2%"),
        aes(x=date, y=roll_meanprice, colour=region))+
+  geom_hline(yintercept=0, colour="grey20")+
   geom_line(show.legend=FALSE)+
   geom_text_repel(data=regmeans %>% filter(ITEM_DESC=="LAGER - PINT 3.4-4.2%" & 
                                              date==max(date[!is.na(roll_meanprice)])),
                   aes(x=max(date[!is.na(roll_meanprice)]), y=roll_meanprice, label = region, 
                       colour=region),
-                  family = "Lato", direction = "y", xlim = c(as.Date("2023-02-01"), as.Date("2025-06-01")),
+                  family = "Lato", direction = "y", xlim = c(as.Date("2023-11-01"), as.Date("2026-06-01")),
                   hjust = 0, segment.color = NA, box.padding = .1, show.legend = FALSE, size=rel(2.5))+
-  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2025-06-01")),
+  scale_x_date(name="", limits=c(as.Date("2010-01-01"), as.Date("2026-06-01")),
                labels=c("", "2010", "2015", "2020", "", ""))+
   scale_y_continuous(name="Mean price observed", labels=dollar_format(prefix="£"), limits=c(0,NA))+
   scale_colour_manual(values=c("#0e3724", "#008c5c", "#33b983", "#0050ae", "#9b54f3", "#bf8cfc",
                                "#551153", "#ac0000", "#c85b00", "#f98517", "grey10", "grey70"))+
   theme_custom()+
-  theme(plot.title=element_markdown())+
+  theme(plot.title=element_markdown(), axis.line.x=element_blank())+
   labs(title="The price of a pint is highest in <span style='color:#33b983;'>London</span> and <span style='color:#bf8cfc;'>Northern Ireland",
        subtitle="Average observed price for a pint of lager (3.4-4.2% ABV), rolling 5-month average\n",
        caption="Data from ONS price quotes | Plot by @VictimOfMaths")
@@ -1431,12 +1554,13 @@ pricedists <- fulldata %>%
 
 agg_tiff("Outputs/ONSPriceQuotesPintRidgeplot.tiff", units="in", width=8, height=6, res=800)
 pricedists %>% filter(ITEM_DESC=="LAGER - PINT 3.4-4.2%" & 
-                        Country=="England") %>% 
-  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = after_stat(x)))+
-  geom_density_ridges_gradient(rel_min_height = 0.01, show.legend=FALSE)+
+                        Country=="England") %>%
+  mutate(Region=if_else(region=="London", "London", "Rest of England")) %>% 
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = Region))+
+  geom_density_ridges(alpha=0.5, rel_min_height = 0.01)+
   scale_x_continuous(name="Price per pint", labels=label_dollar(prefix="£"))+
   scale_y_discrete(name="")+
-  scale_fill_paletteer_c("scico::lajolla")+
+  #scale_fill_paletteer_c("scico::lajolla")+
   theme_custom()+
   theme(panel.grid.major.x=element_line(colour="grey95"))+
   labs(title="There is much more variation in the price of a pint these days",
@@ -1462,59 +1586,162 @@ pricedists %>% filter(ITEM_DESC %in% c("LAGER - PINT 3.4-4.2%", "PREMIUM LAGER -
        caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
 dev.off()
 
-agg_tiff("Outputs/ONSPriceQuotesWineRidgeplot.tiff", units="in", width=8, height=6, res=800)
-pricedists %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL",
-                                       "RED WINE- NEW WORLD 75CL",
-                                       "RED WINE 75CL BOTTLE",
-                                       "ROSE WINE-75CL BOTTLE",
-                                       "WHITE WINE- EUROPEAN 75CL",
-                                       "WHITE WINE- NEW WORLD 75CL") & 
-                        Country=="England") %>% 
-  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = after_stat(x)))+
-  geom_density_ridges_gradient(rel_min_height = 0.01, show.legend=FALSE)+
-  scale_x_continuous(name="Price per bottle", labels=label_dollar(prefix="£"),
-                     limits=c(2.5,15), breaks=c(3,4,5,6,7,8,9,10,11,12,13,14,15))+
+#White bread
+
+agg_tiff("Outputs/ONSPriceQuotesBreadRidgeplotLondon.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC=="LGE LOAF-WHTE-UNSLED-750-800G" & 
+                        Country=="England") %>%
+  mutate(Region=if_else(region=="London", "London", "Rest of England")) %>% 
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = Region))+
+  geom_density_ridges(alpha=0.5, rel_min_height = 0.01)+
+  scale_x_continuous(name="Price per loaf", labels=label_dollar(prefix="£"))+
   scale_y_discrete(name="")+
-  scale_fill_paletteer_c("pals::ocean.dense")+
+  scale_fill_paletteer_d("nbapalettes::grizzlies_retro")+
   theme_custom()+
-  theme(panel.grid.major.x=element_line(colour="grey95"))+
-  labs(title="The £7 bottle of wine is the new £5 bottle",
-       subtitle="Distribution of prices of a bottle of wine in shops in England\n",
+  theme(panel.grid.major.x=element_line(colour="grey95"),
+        plot.title=element_markdown(), legend.position="none")+
+  labs(title="Bread costs much the same in <span style='color:#00B2A9'>London</span> as <span style='color:#E43C40'>the rest of England</span>",
+       subtitle="Distribution of prices of a large loaf of unsliced white bread in England\n",
        caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
 dev.off()
 
-
-agg_tiff("Outputs/ONSPriceQuotesWineRegMeans.tiff", units="in", width=7, height=5, res=800)
-pricedists %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL",
-                                       "RED WINE- NEW WORLD 75CL",
-                                       "RED WINE 75CL BOTTLE",
-                                       "ROSE WINE-75CL BOTTLE",
-                                       "WHITE WINE- EUROPEAN 75CL",
-                                       "WHITE WINE- NEW WORLD 75CL") & 
-                        Country=="England") %>% 
-  group_by(region, date) %>% 
-  summarise(Meanprice=mean(PRICE), .groups="drop") %>% 
-  group_by(region) %>% 
-  mutate(rollmean=roll_mean(Meanprice, n=6, align="center", fill=NA)) %>% 
-  ggplot(aes(x=date, y=rollmean, colour=region))+
-  geom_line()+
-  geom_text_repel(data=. %>% filter(date==max(date[!is.na(rollmean)])),
-                  aes(x=max(date[!is.na(rollmean)]), y=rollmean, label = region, 
-                      colour=region),
-                  family = "Lato", direction = "y", xlim = c(as.Date("2023-05-01"), as.Date("2027-01-01")),
-                  hjust = 0, segment.color = NA, box.padding = .1, show.legend = FALSE, size=rel(2.5))+
-  scale_x_date(limits=as.Date(c("2010-01-01", "2027-01-01")), name="",
-               breaks=as.Date(c("2010-01-01", "2014-01-01", "2018-01-01",
-                                "2022-01-01")),
-               labels=c("2010", "2014", "2018", "2022"))+
-  scale_y_continuous(name="Mean price per bottle", labels=label_dollar(prefix="£"))+
-  scale_colour_paletteer_d("LaCroixColoR::paired")+
+agg_tiff("Outputs/ONSPriceQuotesBreadRidgeplot.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC=="LGE LOAF-WHTE-UNSLED-750-800G" & 
+                        Country=="England") %>%
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = after_stat(x)))+
+  geom_density_ridges_gradient(alpha=0.5, rel_min_height = 0.01)+
+  scale_x_continuous(name="Price per loaf", labels=label_dollar(prefix="£"))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_c("scico::lajolla")+
   theme_custom()+
-  theme(panel.grid.major.y=element_line(colour="grey95"),
-        legend.position="off")+
-  labs(title="London has expensive taste in wine, East Anglia, not so much",
-       subtitle="Rolling 6-month average price paid for a bottle of wine in shops in English regions",
+  theme(panel.grid.major.x=element_line(colour="grey95"),
+        legend.position="none")+
+  labs(title="The price of bread hasn't changed too much",
+       subtitle="Distribution of prices of a large loaf of unsliced white bread in England\n",
        caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
+
+agg_tiff("Outputs/ONSPriceQuotesTeaRidgeplotLon.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC=="TEA -TAKE-AWAY" & 
+                        Country=="England") %>%
+  mutate(Region=if_else(region=="London", "London", "Rest of England")) %>% 
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = Region))+
+  geom_density_ridges(alpha=0.5, rel_min_height = 0.01)+
+  scale_x_continuous(name="Price per cuppa", labels=label_dollar(prefix="£"))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_d("nbapalettes::grizzlies_retro")+
+  theme_custom()+
+  theme(panel.grid.major.x=element_line(colour="grey95"),
+        plot.title=element_markdown(), legend.position="none")+
+  labs(title="A cuppa is slightly more expensive in <span style='color:#00B2A9'>London</span> than <span style='color:#E43C40'>the rest of England</span>",
+       subtitle="Distribution of prices of a takeaway cup of tea in England\n",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
+
+agg_tiff("Outputs/ONSPriceQuotesTeaRidgeplot.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC=="TEA -TAKE-AWAY" & 
+                        Country=="England") %>%
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = after_stat(x)))+
+  geom_density_ridges_gradient(alpha=0.5, rel_min_height = 0.01)+
+  scale_x_continuous(name="Price per cuppa", labels=label_dollar(prefix="£"))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_c("scico::lajolla")+
+  theme_custom()+
+  theme(panel.grid.major.x=element_line(colour="grey95"),
+        legend.position="none")+
+  labs(title="Variation in the price of a cuppa has increased in the last decade",
+       subtitle="Distribution of prices of a takeaway cup of tea in England\n",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
+
+agg_tiff("Outputs/ONSPriceQuotesIndianRidgeplotLon.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC=="INDIAN TAKEAWAY" & 
+                        Country=="England") %>%
+  mutate(Region=if_else(region=="London", "London", "Rest of England")) %>% 
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = Region))+
+  geom_density_ridges(alpha=0.5, rel_min_height = 0.01)+
+  scale_x_continuous(name="Price per meal", labels=label_dollar(prefix="£"))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_d("nbapalettes::grizzlies_retro")+
+  theme_custom()+
+  theme(panel.grid.major.x=element_line(colour="grey95"),
+        plot.title=element_markdown(), legend.position="none")+
+  labs(title="Curries are more expensive in <span style='color:#00B2A9'>London</span> then <span style='color:#E43C40'>the rest of England</span>",
+       subtitle="Distribution of prices of a takeaway curry in England\n",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
+
+agg_tiff("Outputs/ONSPriceQuotesIndianRidgeplot.tiff", units="in", width=8, height=6, res=800)
+pricedists %>% filter(ITEM_DESC=="INDIAN TAKEAWAY" & 
+                        Country=="England") %>%
+  ggplot(aes(x=PRICE, y=as.factor(year(date)), fill = after_stat(x)))+
+  geom_density_ridges_gradient(alpha=0.5, rel_min_height = 0.01)+
+  scale_x_continuous(name="Price per meal", labels=label_dollar(prefix="£"))+
+  scale_y_discrete(name="")+
+  scale_fill_paletteer_c("scico::lajolla")+
+  theme_custom()+
+  theme(panel.grid.major.x=element_line(colour="grey95"),
+        legend.position="none")+
+  labs(title="Variation in the price of a curry has increased slightly",
+       subtitle="Distribution of prices of a takeaway curry in England\n",
+       caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+dev.off()
+
+short <- fulldata %>% group_by(date, ITEM_DESC) %>% 
+  summarise(meanprice=weighted.mean(PRICE, STRATUM_WEIGHT), .groups="drop") %>% 
+  mutate(date=as.Date(date))
+
+short %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL", "RED WINE 75CL BOTTLE",
+                                  "RED WINE- NEW WORLD 75CL", "ROSE WINE-75CL BOTTLE",
+                                  "SPARKLING WINE 75CL MIN 11%ABV", "WHITE WINE- EUROPEAN 75CL", 
+                                  "WHITE WINE- NEW WORLD 75CL")) %>% 
+  ggplot(aes(x=date, y=meanprice, colour=ITEM_DESC))+
+  geom_line()+
+  theme_custom()
+
+#Adjust for CPI
+#Download ONS CPI data
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindices/current/mm23.csv"
+temp <- tempfile()
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+CPIdata <-read.csv(temp) %>% 
+  set_names(slice(., 1)) %>% 
+  slice_tail(., n=nrow(.)-1) %>% 
+  slice_tail(., n=923) %>% 
+  #Select indices we want D7CA, D7BT, D7DI, D7DH, D7DG
+  select(CDID, D7BT) %>% 
+  set_names("date", "Overall") %>% 
+  mutate(date=as.Date(paste(date, "01"), "%Y %b %d"))
+
+#Rebase prices into latest cost month
+RealPrices <- merge(short, CPIdata) %>% 
+  mutate(Overall=as.numeric(Overall),
+         Inflator=Overall[date==max(date)]/Overall,
+         RealMeanPrice=meanprice*Inflator) %>% 
+  group_by(ITEM_DESC) %>% 
+  mutate(RealMeanPriceRoll=roll_mean(RealMeanPrice, n=6, align="right", fill=NA))
+
+agg_png("Outputs/ONSPriceQuotesWine.png", units="in", width=9, height=5, res=800)
+RealPrices %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL", "RED WINE 75CL BOTTLE",
+                                  "RED WINE- NEW WORLD 75CL", "ROSE WINE-75CL BOTTLE",
+                                  "SPARKLING WINE 75CL MIN 11%ABV", "WHITE WINE- EUROPEAN 75CL", 
+                                  "WHITE WINE- NEW WORLD 75CL")) %>% 
+  ggplot(aes(x=date, y=RealMeanPriceRoll, colour=ITEM_DESC, linetype=ITEM_DESC))+
+  geom_line()+
+  scale_x_date(name="")+
+  scale_y_continuous(name="Mean price per bottle (May 2024 prices)", labels=label_dollar(prefix="£"))+
+  scale_colour_manual(values=c("#880d1e", "#880d1e", "#880d1e", "#fb6f92", "#00b4d8", "#81b29a", "#81b29a"),
+                      name="", labels=c("Red (European)", "Red (New world)", "Red", "Rose", "Sparkling", 
+                                        "White (European)", "White (New World)"))+
+  scale_linetype_manual(values=c(1,2,3,1,1,1,2), name="", 
+                        labels=c("Red (European)", "Red (New world)", "Red", "Rose", "Sparkling", 
+                                 "White (European)", "White (New World)"))+
+  theme_custom()+
+  theme(panel.grid.major.y=element_line(colour="grey95"))+
+  labs(title="Wine prices have fallen in the past decade",
+       subtitle="Rolling 6-month average prices for a 75cl bottle of wine recorded by ONS adjusted to May 2024 prices using CPI inflation",
+       caption="Data from ONS | Plot by @VictimOfMaths")
 
 dev.off()
 
