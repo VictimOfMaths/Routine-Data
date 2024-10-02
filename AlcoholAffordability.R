@@ -92,15 +92,16 @@ Affordability %>%
   mutate(Measure=if_else(Measure=="Overall", "CPI prices", "Disposable incomes"),
          vjust=if_else(Measure=="CPI prices", -0.5, 1.5)) %>% 
   ggplot(aes(x=time, y=Value, colour=Measure, label=Measure, vjust=vjust))+
-  geom_textline(show.legend=FALSE, hjust=0.7, straight=TRUE,)+
+  geom_textline(show.legend=FALSE, hjust=0.71, straight=TRUE,)+
   geom_hline(yintercept=100, colour="Grey80")+
   scale_x_date(name="")+
   scale_y_continuous(name="Relative values\n(1988 Q1 = 100)")+
   scale_colour_paletteer_d("ggthemes::Classic_Green_Orange_6")+
   theme_custom()+
   labs(title="The UK has less money to spend and everything costs more",
-       subtitle="Overall CPI prices and disposable household income relative to Q1 1988. Data up to March 2024.",
+       subtitle="Overall CPI prices and disposable household income relative to Q1 1988. Data up to June 2024.",
        caption="Data from ONS | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/AlcoholCPI.tiff", units="in", width=9, height=6, res=600)
@@ -113,14 +114,15 @@ Affordability %>%
   geom_text_repel(data=. %>% filter(time==max(time)),
                   aes(label = Measure),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2024-05-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(as.Date("1988-01-01"), as.Date("2026-06-01")))+
+                  xlim = c(as.Date("2024-08-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(as.Date("1988-01-01"), as.Date("2026-01-01")))+
   scale_y_continuous(name="CPI inflation\n(1988 Q1 = 100)")+
   scale_colour_paletteer_d("colorblindr::OkabeIto")+
   theme_custom()+
   labs(title="Alcohol prices are rising *much* slower than everything else",
-       subtitle="CPI inflation for alcohol and for all products combined. Data up to September 2022.",
+       subtitle="CPI inflation for alcohol and for all products combined. Data up to June 2024.",
        caption="Data from ONS | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/AlcoholRelPrice.tiff", units="in", width=9, height=6, res=600)
@@ -139,6 +141,7 @@ ggplot(Summarydata %>% filter(Metric=="RAPI"),
   labs(title="Relative to everything else, alcohol keeps getting cheaper",
        subtitle="Relative prices of alcohol and all other goods compared to their relative prices in Q1 1988.",
        caption="Data from ONS | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/AlcoholAffordability.tiff", units="in", width=9, height=6, res=600)
@@ -148,8 +151,7 @@ ggplot(Summarydata %>% filter(Metric=="Affordability"), aes(x=time, y=Value, col
   geom_line()+
   scale_x_date(name="")+
   scale_y_continuous(name="Affordability index (Q1 1988=100", 
-                     trans="log", breaks=c(100, 150, 200, 250, 300),
-                     labels=c("No change", "+50%", "+100%", "+150%", "+200%"))+
+                     trans="log", breaks=c(100, 200, 300))+
   scale_colour_manual(values=c("Black", "#ffc000", "#00b0f0", "#7030a0"),
                       labels=c("All alcohol", "Beer", "Spirits", "Wine"), name="")+
   scale_linetype_manual(values=c(2,1,1,1),
@@ -192,16 +194,17 @@ Affordability_rebase %>%
   mutate(Measure=if_else(Measure=="Overall", "CPI inflation", "Disposable incomes"),
          vjust=if_else(Measure=="CPI inflation", -0.5, 1.5)) %>% 
   ggplot(aes(x=time, y=Value, colour=Measure, label=Measure, vjust=vjust))+
-  geom_hline(yintercept=100, colour="Grey80")+
   geom_textline(show.legend=FALSE, hjust=0.71, straight=TRUE,)+
+  geom_hline(yintercept=100, colour="Grey80")+
   scale_x_date(name="")+
   scale_y_continuous(name=paste0("Relative values\n(", base, " = 100)"), 
                      trans="log")+
   scale_colour_paletteer_d("ggthemes::Classic_Green_Orange_6")+
   theme_custom()+
   labs(title="The UK has less money to spend and everything costs more",
-       subtitle=paste0("Overall CPI inflation and disposable household income relative to ", base,". Data up to March 2024."),
+       subtitle=paste0("Overall CPI inflation and disposable household income relative to ", base,". Data up to September 2023."),
        caption="Data from ONS | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/AlcoholCPIShort.tiff", units="in", width=9, height=6, res=600)
@@ -214,15 +217,16 @@ Affordability_rebase %>%
   geom_text_repel(data=. %>% filter(time==max(time)),
                   aes(label = Measure),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2024-01-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(as.Date("2019-07-01"), as.Date("2024-08-01")))+
+                  xlim = c(as.Date("2024-05-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(as.Date("2019-07-01"), as.Date("2025-06-01")))+
   scale_y_continuous(name=paste0("CPI inflation\n(", base, " = 100)"), 
                      trans="log")+
   scale_colour_paletteer_d("colorblindr::OkabeIto")+
   theme_custom()+
   labs(title="Alcohol prices rises have lagged behind overall inflation",
-       subtitle="CPI inflation for alcohol and for all products combined. Data up to March 2024.",
+       subtitle="CPI inflation for alcohol and for all products combined. Data up to June 2024.",
        caption="Data from ONS | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/AlcoholRelPriceShort.tiff", units="in", width=9, height=6, res=600)
@@ -238,9 +242,10 @@ ggplot(Summarydata_rebase %>% filter(Metric=="RAPI"),
   scale_linetype_manual(values=c(2,1,1,1),
                         labels=c("All alcohol", "Beer", "Spirits", "Wine"), name="")+
   theme_custom()+
-  labs(title="Alcohol has increased in price less than other goods, but the gap is closing",
+  labs(title="Relative to everything else, alcohol keeps getting cheaper",
        subtitle=paste0("Relative prices of alcohol and all other goods compared to their relative prices in ", base, "."),
        caption="Data from ONS | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/AlcoholAffordabilityShort.tiff", units="in", width=9, height=6, res=600)
@@ -257,7 +262,7 @@ ggplot(Summarydata_rebase %>% filter(Metric=="Affordability"), aes(x=time, y=Val
                         labels=c("All alcohol", "Beer", "Spirits", "Wine"), name="")+
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey90"))+
-  labs(title="Alcohol remains more affordable than before the pandemic",
+  labs(title="Alcohol continues to get more affordable",
        subtitle=paste0("Alcohol affordability in the UK since ", base, " (higher = more affordable). Affordability is calculated as\nthe ratio of household disposable income (adjusted) to the relative price of alcohol vs. overall CPI inflation"),
        caption="Data from ONS | Plot by @VictimOfMaths")
 
@@ -301,12 +306,16 @@ RPIdata %>%
   geom_hline(yintercept=100, colour="grey80")+
   geom_line()+
   scale_x_date(name="")+
-  scale_y_continuous(name="RPI index (2013=100)\n(log scale)", trans="log")+
+  scale_y_continuous(name="RPI index (2013=100)\n(log scale)", trans="log",
+                     breaks=c(100, 120, 140), labels=c("No change", "+20%", "+40%"))+
   scale_colour_paletteer_d("lisa::MarcChagall", name="")+
   theme_custom()+
-  labs(title="Alcohol prices have risen faster in the on-trade in the past year",
+  labs(title="The price of alcohol in pubs has risen much more than in shops",
        subtitle="Retail Price Index data on the prices of on-trade (sold in pubs and bars) and off-trade (sold in shops) alcohol in the UK",
-       caption="Data from ONS | Plot by @VictimOfMaths")
+       caption="Data from ONS | Plot by @VictimOfMaths")+
+  theme(panel.grid.major.y=element_line(colour="grey95"))
+
 dev.off()
 
 #Rebase to immediately prior to the pandemic
+
