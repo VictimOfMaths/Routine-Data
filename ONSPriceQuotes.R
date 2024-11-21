@@ -36,6 +36,56 @@ comparators <- c(220107, 220318, 210102, 220305, 640244)
 #Actual data here: https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes
 
 #Download ONS price quotes - credit to Peter Donaghy (@peterdonaghy) for bringing this data to my attention
+#October 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesoctober2024/upload-pricequotes202410.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2410 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#September 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesseptember2024/upload-pricequotes202409.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2409 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#August 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesaugust2024/upload-pricequotes202408.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2408 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#July 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjuly2024/upload-pricequotes202407.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2407 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#June 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjune2024/upload-pricequotes202406.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2406 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
 #May 2024
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesmay2024/upload-pricequotes202405.csv"
@@ -66,7 +116,7 @@ data2403 <- read_csv(temp) %>%
            VALIDITY %in% c(3,4)) %>% 
   mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
 
-#February 2043
+#February 2024
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesfebruary2024/upload-pricequotes202402.csv"
 temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
@@ -1207,7 +1257,8 @@ data10q1 <- read_csv(file.path(temp2, "price_quote_2010_q1.csv")) %>%
 #while the item codes have remained the same
 
 #Get code to description lookup
-lookup <- bind_rows(data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
+lookup <- bind_rows(data2410, data2409, data2408, data2407, data2406, 
+                    data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
                     data2309, data2308, data2307, data2306, data2305, data2304, data2303, data2302, 
                     data2301, data2212, data2211, data2210, data2209, data2208, data2207, data2206, 
                     data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
@@ -1230,7 +1281,8 @@ lookup <- bind_rows(data2405, data2404, data2403, data2402, data2401, data2312, 
   ungroup() %>% 
   select(-c(count, date))
 
-fulldata <- bind_rows(data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
+fulldata <- bind_rows(data2410, data2409, data2408, data2407, data2406, 
+                      data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
                       data2309, data2308, data2307, data2306, data2305, data2304, data2303, data2302, 
                       data2301, data2212, data2211, data2210, data2209, data2208, data2207, data2206, 
                       data2205, data2204, data2203, data2202, data2201, data2112, data2111, data2110, data2109,
@@ -1724,9 +1776,9 @@ RealPrices <- merge(short, CPIdata) %>%
 
 agg_png("Outputs/ONSPriceQuotesWine.png", units="in", width=9, height=5, res=800)
 RealPrices %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL", "RED WINE 75CL BOTTLE",
-                                  "RED WINE- NEW WORLD 75CL", "ROSE WINE-75CL BOTTLE",
-                                  "SPARKLING WINE 75CL MIN 11%ABV", "WHITE WINE- EUROPEAN 75CL", 
-                                  "WHITE WINE- NEW WORLD 75CL")) %>% 
+                                       "RED WINE- NEW WORLD 75CL", "ROSE WINE-75CL BOTTLE",
+                                       "SPARKLING WINE 75CL MIN 11%ABV", "WHITE WINE- EUROPEAN 75CL", 
+                                       "WHITE WINE- NEW WORLD 75CL")) %>% 
   ggplot(aes(x=date, y=RealMeanPriceRoll, colour=ITEM_DESC, linetype=ITEM_DESC))+
   geom_line()+
   scale_x_date(name="")+
@@ -1744,4 +1796,3 @@ RealPrices %>% filter(ITEM_DESC %in% c("RED WINE- EUROPEAN 75CL", "RED WINE 75CL
        caption="Data from ONS | Plot by @VictimOfMaths")
 
 dev.off()
-
