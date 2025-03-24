@@ -36,6 +36,47 @@ comparators <- c(220107, 220318, 210102, 220305, 640244)
 #Actual data here: https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes
 
 #Download ONS price quotes - credit to Peter Donaghy (@peterdonaghy) for bringing this data to my attention
+
+#February 2025
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesoctober2024/upload-pricequotes202410.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2410 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#January 2025
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesjanuary2025/upload-pricequotes202501.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2501 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#December 2025
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesdecember2024/upload-pricequotes202412.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2412 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
+#November 2024
+temp <- tempfile()
+url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesnovember2024/upload-pricequotes202411.csv"
+temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
+
+data2411 <- read_csv(temp) %>% 
+  filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
+           VALIDITY %in% c(3,4)) %>% 
+  mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
+
 #October 2024
 temp <- tempfile()
 url <- "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceindicescpiandretailpricesindexrpiitemindicesandpricequotes/pricequotesoctober2024/upload-pricequotes202410.csv"
@@ -235,7 +276,6 @@ data2303 <- read_csv(temp) %>%
   filter((ITEM_ID %in% comparators | substr(ITEM_ID, 1, 3) %in% c("310", "320")) & 
            VALIDITY %in% c(3,4)) %>% 
   mutate(date=as.Date(paste0(QUOTE_DATE, "01"), format="%Y%m%d"))
-
 
 #February 2023
 temp <- tempfile()
@@ -1257,7 +1297,7 @@ data10q1 <- read_csv(file.path(temp2, "price_quote_2010_q1.csv")) %>%
 #while the item codes have remained the same
 
 #Get code to description lookup
-lookup <- bind_rows(data2410, data2409, data2408, data2407, data2406, 
+lookup <- bind_rows(data2501, data2412, data2411, data2410, data2409, data2408, data2407, data2406, 
                     data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
                     data2309, data2308, data2307, data2306, data2305, data2304, data2303, data2302, 
                     data2301, data2212, data2211, data2210, data2209, data2208, data2207, data2206, 
@@ -1281,7 +1321,7 @@ lookup <- bind_rows(data2410, data2409, data2408, data2407, data2406,
   ungroup() %>% 
   select(-c(count, date))
 
-fulldata <- bind_rows(data2410, data2409, data2408, data2407, data2406, 
+fulldata <- bind_rows(data2501, data2412, data2411, data2410, data2409, data2408, data2407, data2406, 
                       data2405, data2404, data2403, data2402, data2401, data2312, data2311, data2310, 
                       data2309, data2308, data2307, data2306, data2305, data2304, data2303, data2302, 
                       data2301, data2212, data2211, data2210, data2209, data2208, data2207, data2206, 
@@ -1368,7 +1408,7 @@ fulldata <- bind_rows(data2410, data2409, data2408, data2407, data2406,
          SHOP_WEIGHT, date, product_cat, product_cat_detail, channel, region)
 
 #Write data out
-write.csv(fulldata, "X:/ScHARR/SARG_SAPM_3_5/General/Data/ONS Price Quotes/Fulldata.csv")
+data.table::fwrite(fulldata, "X:/ScHARR/SARG_SAPM_3_5/General/Data/ONS Price Quotes/Fulldata.csv")
 
 #Show which items are included at each time point
 agg_png("Outputs/ONSPriceQuotesTable.png", units="in", width=12, height=7, res=500)
@@ -1523,9 +1563,9 @@ prodmeans %>%
   ggplot(aes(x=date, y=roll_meanprice, colour=ITEM_DESC))+
   geom_line(show.legend=FALSE)+
   geom_text_repel(data=labels2, aes(x=date, y=roll_meanprice, label=label, colour=ITEM_DESC), 
-                  family = "Lato", direction = "y", xlim = c(as.Date("2022-07-10"), NA),
+                  family = "Lato", direction = "y", xlim = c(as.Date("2025-02-10"), NA),
                   hjust = 0, segment.color = NA, box.padding = .3, show.legend = FALSE)+
-  scale_x_date(name="", limits=c(NA_Date_, as.Date("2024-06-01")),
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2026-06-01")),
                breaks=as.Date(c("2010-01-01", "2015-01-01", "2020-01-01")),
                labels=c("2010", "2015", "2020"))+
   scale_y_continuous(name="Average price per pint", labels=label_dollar(prefix="£"))+
@@ -1618,6 +1658,7 @@ pricedists %>% filter(ITEM_DESC=="LAGER - PINT 3.4-4.2%" &
   labs(title="There is much more variation in the price of a pint these days",
        subtitle="Distribution of prices of a pint of 3.4-4.2% lager in pubs in England\n",
        caption="Data from ONS Price Quotes | Plot by @VictimOfMaths")
+
 dev.off()
 
 agg_tiff("Outputs/ONSPriceQuotesPintStdPrmRidgeplot.tiff", units="in", width=8, height=7, res=800)
@@ -1760,7 +1801,7 @@ temp <- curl_download(url=url, destfile=temp, quiet=FALSE, mode="wb")
 CPIdata <-read.csv(temp) %>% 
   set_names(slice(., 1)) %>% 
   slice_tail(., n=nrow(.)-1) %>% 
-  slice_tail(., n=923) %>% 
+  slice_tail(., n=932) %>% 
   #Select indices we want D7CA, D7BT, D7DI, D7DH, D7DG
   select(CDID, D7BT) %>% 
   set_names("date", "Overall") %>% 
