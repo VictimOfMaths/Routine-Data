@@ -100,7 +100,7 @@ Affordability %>%
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey95"))+
   labs(title="The UK has less money to spend and everything costs more",
-       subtitle="Overall CPI prices and disposable household income relative to Q1 1988. Data up to October 2024.",
+       subtitle="Overall CPI prices and disposable household income relative to Q1 1988. Data up to December 2024.",
        caption="Data from ONS | Plot by @VictimOfMaths")
 
 dev.off()
@@ -115,8 +115,8 @@ Affordability %>%
   geom_text_repel(data=. %>% filter(time==max(time)),
                   aes(label = Measure),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2024-08-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(as.Date("1988-01-01"), as.Date("2026-10-01")))+
+                  xlim = c(as.Date("2024-12-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(as.Date("1988-01-01"), as.Date("2027-03-01")))+
   scale_y_continuous(name="CPI inflation\n(1988 Q1 = 100)")+
   scale_colour_paletteer_d("colorblindr::OkabeIto")+
   theme_custom()+
@@ -207,7 +207,7 @@ Affordability_rebase %>%
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey95"))+
   labs(title="The UK has less money to spend and everything costs more",
-       subtitle=paste0("Overall CPI inflation and disposable household income relative to ", base,". Data up to October 2024."),
+       subtitle=paste0("Overall CPI inflation and disposable household income relative to ", base,". Data up to December 2024."),
        caption="Data from ONS | Plot by @VictimOfMaths")
 dev.off()
 
@@ -221,7 +221,7 @@ Affordability_rebase %>%
   geom_text_repel(data=. %>% filter(time==max(time)),
                   aes(label = Measure),
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
-                  xlim = c(as.Date("2024-10-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+                  xlim = c(as.Date("2024-12-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
   scale_x_date(name="", limits=c(as.Date("2019-07-01"), as.Date("2025-12-01")))+
   scale_y_continuous(name=paste0("CPI inflation\n(", base, " = 100)"), 
                      trans="log")+
@@ -229,7 +229,7 @@ Affordability_rebase %>%
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey95"))+
   labs(title="Alcohol prices rises have lagged behind overall inflation",
-       subtitle="CPI inflation for alcohol and for all products combined. Data up to October 2024.",
+       subtitle="CPI inflation for alcohol and for all products combined. Data up to December 2024.",
        caption="Data from ONS | Plot by @VictimOfMaths")
 
 dev.off()
@@ -248,7 +248,7 @@ ggplot(Summarydata_rebase %>% filter(Metric=="RAPI"),
                         labels=c("All alcohol", "Beer", "Spirits", "Wine"), name="")+
   theme_custom()+
   theme(panel.grid.major.y=element_line(colour="Grey95"))+
-  labs(title="Alcohol has increased in price less than other goods, but the gap has closed slightly",
+  labs(title="Alcohol has increased in price less than other goods, and the gap widened in 2024",
        subtitle=paste0("Relative prices of alcohol and all other goods compared to their relative prices in ", base, "."),
        caption="Data from ONS | Plot by @VictimOfMaths")
 
@@ -308,7 +308,7 @@ RPIAfford <-read.csv(temp) %>%
            substr(date, 7, 8)=="3" ~ as.Date(paste(Year, "07-01", sep="-")),
            TRUE ~ as.Date(paste(Year, "10-01", sep="-")))) %>% 
   filter(!is.na(Index))
-  
+
 agg_png("Outputs/RPIAffordabilityxProductxChannel.png", units="in", width=16/1.5, height=9/1.5, res=800)
 ggplot(RPIAfford, aes(x=time, y=Index/100, colour=Product, linetype=Product))+
   geom_hline(yintercept=1, colour="grey20")+
@@ -333,19 +333,19 @@ dev.off()
 
 
 ###
-  
+
 RPIdata <-read.csv(temp) %>% 
-    set_names(slice(., 1)) %>% 
-    slice_tail(., n=nrow(.)-1) %>% 
-    filter(str_length(CDID)>7) %>% 
-    select(CDID, DOBI, DOBJ, DOBL, DOBM) %>% 
-    set_names("date", "On-trade beer", "Off-trade beer", "On-trade wine & spirits", 
-              "Off-trade wine & spirits") %>%   
+  set_names(slice(., 1)) %>% 
+  slice_tail(., n=nrow(.)-1) %>% 
+  filter(str_length(CDID)>7) %>% 
+  select(CDID, DOBI, DOBJ, DOBL, DOBM) %>% 
+  set_names("date", "On-trade beer", "Off-trade beer", "On-trade wine & spirits", 
+            "Off-trade wine & spirits") %>%   
   mutate(across(.cols=c(2:5), ~as.numeric(.x))) %>% 
   filter(!is.na(`On-trade beer`)) %>% 
   gather(Product, Index, c(2:5)) %>% 
   mutate(date=as.Date(paste(to_upper_camel_case(date, sep_out=" "), "01"), "%Y %b %d"))
-  
+
 ggplot(RPIdata, aes(x=date, y=Index, colour=Product))+
   geom_line()+
   scale_x_date(name="")+
@@ -371,7 +371,47 @@ RPIdata %>%
   labs(title="Alcohol prices have risen faster in the on-trade in the past year",
        subtitle="Retail Price Index data on the prices of on-trade (sold in pubs and bars) and off-trade (sold in shops) alcohol in the UK",
        caption="Data from ONS | Plot by @VictimOfMaths")
+
 dev.off()
 
-#Rebase to immediately prior to the pandemic
 
+#Include overall RPI
+RPIdata2 <-read.csv(temp) %>% 
+  set_names(slice(., 1)) %>% 
+  slice_tail(., n=nrow(.)-1) %>% 
+  filter(str_length(CDID)>7) %>% 
+  select(CDID, CHAW, DOBI, DOBJ, DOBL, DOBM) %>% 
+  set_names("date", "All items", "On-trade beer", "Off-trade beer", "On-trade wine & spirits", 
+            "Off-trade wine & spirits") %>%   
+  mutate(across(.cols=c(2:6), ~as.numeric(.x))) %>% 
+  filter(!is.na(`On-trade beer`)) %>% 
+  gather(Product, Index, c(2:6)) %>% 
+  mutate(date=as.Date(paste(to_upper_camel_case(date, sep_out=" "), "01"), "%Y %b %d"))
+
+#Rebase to immediately prior to the pandemic
+agg_png("Outputs/RPIxChannel.png", units="in", width=9, height=6, res=800)
+RPIdata2 %>% 
+  group_by(Product) %>% 
+  mutate(Index=Index*100/Index[date==as.Date("2019-12-01")]) %>% 
+  filter(date>=as.Date("2019-12-01")) %>% 
+  ggplot(aes(x=date, y=Index, colour=Product, linetype=Product))+
+  #geom_rect(aes(xmin=as.Date("2022-01-01"), xmax=as.Date("2023-01-01"), ymin=85,
+  #              ymax=155), fill="grey90", colour="grey90")+
+  geom_hline(yintercept=100, colour="grey20")+
+  geom_line()+
+  geom_text_repel(data=. %>% filter(date==max(date)),
+                  aes(label = Product),
+                  family = "Lato", fontface = "bold", direction = "y", box.padding = 0.4, hjust=0,
+                  xlim = c(as.Date("2024-12-01"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(as.Date("2019-12-01"), as.Date("2025-12-01")))+  
+  scale_y_continuous(name="Relative price compared to December 2019\n(log scale)", trans="log", breaks=c(100,110,120,130),
+                     labels=c("No change", "+10%", "+20%", "+30%"))+
+  scale_colour_manual(values=c("black", "orange", "#7030a0","orange",  "#7030a0"))+
+  scale_linetype_manual(values=c(2,1,1,3,3))+
+  theme_custom()+
+  theme(panel.grid.major.y=element_line(colour="grey95"), legend.position="none")+
+  labs(title="Alcohol prices in both pubs and shops have risen below inflation",
+       subtitle="Product-specific inflation indices (RPI) for beer and wines/spirits, in the on-trade (pubs and bars) and off-trade (shops)",
+       caption="Data from ONS | Plot by @VictimOfMaths")
+
+dev.off()
