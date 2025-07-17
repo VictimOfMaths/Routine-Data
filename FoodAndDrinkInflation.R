@@ -83,8 +83,8 @@ ggplot(CPIdata %>% filter(date>=as.Date("2021-01-01") &
   geom_text_repel(data=. %>% filter(date==max(date) & Product!="Overall"),
                   aes(label = Product), size=3,
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.2, hjust=0,
-                  xlim = c(as.Date("2024-10-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(NA_Date_, as.Date("2025-05-01")))+
+                  xlim = c(as.Date("2025-06-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2026-01-01")))+
   scale_y_continuous(trans="log", name="CPI inflation since January 2021", 
                      breaks=c(1, 1.2, 1.4), labels=c("0%", "+20%", "+40%"))+
   scale_colour_manual(values=c("#EF7C12","#FC6882","#54BCD1", "#F4B95A", "#009F3F", "#8FDA04", 
@@ -98,7 +98,7 @@ ggplot(CPIdata %>% filter(date>=as.Date("2021-01-01") &
 
 dev.off()
 
-agg_png("Outputs/CPIInflationxItemRel.png", units="in", width=9, height=7, res=500)
+agg_png("Outputs/CPIInflationxItemRel.png", units="in", width=9, height=6, res=800)
 CPIdata %>% filter(date>=as.Date("2021-01-01") &
                      Product %in% c("Bread & Cereals", "Meat", "Fish", "Overall",
                                     "Milk, Cheese & Eggs", "Oils & Fats", "Fruit", 
@@ -113,8 +113,8 @@ CPIdata %>% filter(date>=as.Date("2021-01-01") &
   geom_text_repel(data=. %>% filter(date==max(date) & Product!="Overall"),
                   aes(label = Product), size=3,
                   family = "Lato", fontface = "bold", direction = "y", box.padding = 0.2, hjust=0,
-                  xlim = c(as.Date("2024-10-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
-  scale_x_date(name="", limits=c(NA_Date_, as.Date("2025-05-01")))+
+                  xlim = c(as.Date("2025-06-10"), NA_Date_), show.legend=FALSE, segment.color = NA)+
+  scale_x_date(name="", limits=c(NA_Date_, as.Date("2026-01-01")))+
   scale_y_continuous(trans="log", name="Change in real-terms prices since January 2021", 
                      breaks=c(1, 1.2, 1.4), labels=c("0%", "+20%", "+40%"))+
   scale_colour_manual(values=c("#EF7C12","#FC6882","#54BCD1", "#F4B95A", "#009F3F", "#8FDA04", 
